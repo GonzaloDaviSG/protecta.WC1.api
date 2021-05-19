@@ -1,0 +1,82 @@
+{
+	"info": {
+		"_postman_id": "eaa5e9f7-6e96-44e3-a8cc-227240ac035c",
+		"name": "WorldCheckOne",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "CREACION DE CASO -OBTECION DE RESULTADOS",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"currentDate\", new Date().toGMTString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n{\r\n\"dDate\": \"{{currentDate}}\",\r\n\"item\" :{\r\n    \"secondaryFields\": [],\r\n    \"entityType\": \"INDIVIDUAL\",\r\n    \"customFields\": [],\r\n    \"groupId\": \"{{group-id}}\",\r\n    \"providerTypes\": [\r\n        \"WATCHLIST\"\r\n    ],\r\n    \"name\": \"putin\"\r\n}\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5001/api/WC1/create",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"WC1",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CALIFICACION DE RESULTADO",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"caseSystemId\": \"5jb6vbtcst801fnwp88vpaqoz\",\r\n    \"item\": {\r\n        \"resultIds\": [\r\n            \"5jb87m3l17rc1fnwp88vpyq5j\"\r\n        ],\r\n        \"statusId\": \"5jb87k47a20n1fieag94fx3wl\",\r\n        \"riskId\": \"5jb87k47a20n1fieag94fx3wc\",\r\n        \"reasonId\": \"5jb87k47a20n1fieag94fx3w9\",\r\n        \"resolutionRemark\": \"Remark for the case\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5001/api/WC1/Resolution",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5001",
+					"path": [
+						"api",
+						"WC1",
+						"Resolution"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
