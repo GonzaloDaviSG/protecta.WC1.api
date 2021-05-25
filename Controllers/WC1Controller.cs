@@ -34,5 +34,19 @@ namespace protecta.WC1.api.Controllers
 
             return Ok(new WC1Service().Resolution(item));
         }
+
+        [Route("listcountry")]
+        [HttpGet]
+        public ActionResult listCountry()
+        {
+            return Ok(new WC1Service().listCountry());
+        }
+
+        [Route("listnationalities")]
+        [HttpGet]
+        public ActionResult listNationalities()
+        {
+            return Ok(new WC1Service().listNationalities());
+        }
     }
 }

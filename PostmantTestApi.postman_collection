@@ -32,12 +32,12 @@
 					"raw": "\r\n{\r\n\"dDate\": \"{{currentDate}}\",\r\n\"item\" :{\r\n    \"secondaryFields\": [],\r\n    \"entityType\": \"INDIVIDUAL\",\r\n    \"customFields\": [],\r\n    \"groupId\": \"{{group-id}}\",\r\n    \"providerTypes\": [\r\n        \"WATCHLIST\"\r\n    ],\r\n    \"name\": \"putin\"\r\n}\r\n}"
 				},
 				"url": {
-					"raw": "http://localhost:5001/api/WC1/create",
+					"raw": "http://localhost:51577/api/WC1/create",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "5001",
+					"port": "51577",
 					"path": [
 						"api",
 						"WC1",
@@ -63,18 +63,36 @@
 					"raw": "{\r\n    \"caseSystemId\": \"5jb6vbtcst801fnwp88vpaqoz\",\r\n    \"item\": {\r\n        \"resultIds\": [\r\n            \"5jb87m3l17rc1fnwp88vpyq5j\"\r\n        ],\r\n        \"statusId\": \"5jb87k47a20n1fieag94fx3wl\",\r\n        \"riskId\": \"5jb87k47a20n1fieag94fx3wc\",\r\n        \"reasonId\": \"5jb87k47a20n1fieag94fx3w9\",\r\n        \"resolutionRemark\": \"Remark for the case\"\r\n    }\r\n}"
 				},
 				"url": {
-					"raw": "http://localhost:5001/api/WC1/Resolution",
+					"raw": "http://localhost:51577/api/WC1/Resolution",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "5001",
+					"port": "51577",
 					"path": [
 						"api",
 						"WC1",
 						"Resolution"
 					]
 				}
+			},
+			"response": []
+		},
+		{
+			"name": "Listado de Paises",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": null
+			},
+			"response": []
+		},
+		{
+			"name": "Listado de Nacionalidades",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": null
 			},
 			"response": []
 		}

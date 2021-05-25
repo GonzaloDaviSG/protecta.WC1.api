@@ -3,10 +3,12 @@ using protecta.WC1.api.DTO;
 using protecta.WC1.api.Utils;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -34,6 +36,23 @@ namespace protecta.WC1.api.Services
             return Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>(values3);
         }
 
+        internal Dictionary<string, string> listCountry()
+        {
+            Dictionary<string, string> list = new Dictionary<string, string>();
+            string sMethod = $"/reference/countries";
+            string response = this.getReques(sMethod);
+            list = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            return list;            
+        }
+        internal object listNationalities()
+        {
+            Dictionary<string, string> list = new Dictionary<string, string>();
+            string sMethod = $"/reference/nationalities";
+            string response = this.getReques(sMethod);
+            list = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
+            return list;
+        }
+
         internal object Resolution(RequestWC1ResolutionDTO item)
         {
             string sRequest = JsonConvert.SerializeObject(item.item);
@@ -41,6 +60,7 @@ namespace protecta.WC1.api.Services
             string response = this.putReques(sMethod, sRequest);
             return response;
         }
+
 
         private string createCase(RequestWC1DTO item) {
             string sRequest = JsonConvert.SerializeObject(item.item);
