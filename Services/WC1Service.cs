@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using protecta.WC1.api.DTO;
+using protecta.WC1.api.Repository;
 using protecta.WC1.api.Utils;
 using System;
 using System.Collections.Generic;
@@ -18,13 +19,14 @@ namespace protecta.WC1.api.Services
 {
     public class WC1Service
     {
+        WC1Repository _repository;
         public WC1Service()
         {
-
+            _repository = new WC1Repository();
         }
 
-        public List<ResponseWc1> Create(RequestWC1DTO item) {
-            item.item.groupId = Config.AppSetting["WordlCheckOne:groupId"];
+        public List<ResponseWc1> Create(RequestWc1 item) {
+            item.groupId = Config.AppSetting["WordlCheckOne:groupId"];
             string values = this.createCase(item);
 
             dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(values);
@@ -33,7 +35,9 @@ namespace protecta.WC1.api.Services
             dynamic obj2 = Newtonsoft.Json.JsonConvert.DeserializeObject(values2);
             string values3 = this.getResults(obj.caseSystemId.ToString());
 
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>(values3);
+            List<ResponseWc1> items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>(values3);
+            ResponseDTO _item = this.SaveResult(items, obj.caseSystemId.ToString());
+            return items;
         }
 
         internal Dictionary<string, string> listCountry()
@@ -44,7 +48,7 @@ namespace protecta.WC1.api.Services
             list = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
             return list;            
         }
-        internal object listNationalities()
+        internal object cargaMassive()
         {
             Dictionary<string, string> list = new Dictionary<string, string>();
             string sMethod = $"/reference/nationalities";
@@ -62,8 +66,8 @@ namespace protecta.WC1.api.Services
         }
 
 
-        private string createCase(RequestWC1DTO item) {
-            string sRequest = JsonConvert.SerializeObject(item.item);
+        private string createCase(RequestWc1 item) {
+            string sRequest = JsonConvert.SerializeObject(item);
             //string sRequest = JsonConvert.SerializeObject($"{{\"secondaryFields\":[],\"entityType\":\"INDIVIDUAL\",\"customFields\":[],\"groupId\":\"5jb8bs1tdnwv1fnb5aqmq6kyc\",\"providerTypes\":[\"WATCHLIST\"],\"name\":\"putin\"}}");
             string sMethod = "cases/screeningRequest";
             string response = this.postReques(sMethod, sRequest);
@@ -209,6 +213,31 @@ namespace protecta.WC1.api.Services
             Console.WriteLine(hex);
             return (Convert.ToBase64String(rawHmac));
         }
-        
+
+        ResponseDTO SaveResult(List<ResponseWc1> items ,string SystemCaseId) {
+            ResponseDTO response = new ResponseDTO();
+            for (int i = 0; i < items.Count; i++)
+            {
+                response = _repository.SaveResult(items[i], SystemCaseId);
+                if (response.nId > 0) {
+                    if (items[i].sources.Count > 0)
+                        for (int j = 0; j < items[i].sources.Count; j++)
+                            _repository.SaveSources(items[i].sources[j], response.nId);
+                    if (items[i].categories.Count > 0)
+                        for (int j = 0; j < items[i].categories.Count; j++)
+                            _repository.SaveCategories(items[i].categories[j], response.nId);
+                    if (items[i].events.Count > 0)
+                        for (int j = 0; j < items[i].events.Count; j++)
+                            _repository.SaveEvents(items[i].events[j], response.nId);
+                    if (items[i].countryLinks.Count > 0)
+                        for (int j = 0; j < items[i].countryLinks.Count; j++)
+                            _repository.SaveCountryLinks(items[i].countryLinks[j], response.nId);
+                    if (items[i].identityDocuments.Count > 0)
+                        for (int j = 0; j < items[i].identityDocuments.Count; j++)
+                            _repository.SaveIdentityDocuments(items[i].identityDocuments[j], response.nId);
+                }
+            }
+            return new ResponseDTO();
+        }
     }
 }

@@ -12,8 +12,8 @@ namespace protecta.WC1.api.DTO
     {
         [DataMember]
         public string name { get; set; }
-        [DataMember]
-        public bool nameTransposition { get; set; }
+        //[DataMember]
+        //public bool nameTransposition { get; set; }
         [DataMember]
         public string entityType { get; set; }
         [DataMember]

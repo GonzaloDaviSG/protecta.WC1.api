@@ -22,7 +22,7 @@ namespace protecta.WC1.api.Controllers
         // GET: WC1Controller/Details/5
         [Route("create")]
         [HttpPost]
-        public ActionResult Create(RequestWC1DTO item)
+        public ActionResult Create(RequestWc1 item)
         {
             return Ok(new WC1Service().Create(item));
         }
@@ -46,7 +46,14 @@ namespace protecta.WC1.api.Controllers
         [HttpGet]
         public ActionResult listNationalities()
         {
-            return Ok(new WC1Service().listNationalities());
+            return Ok(new WC1Service().cargaMassive());
+        }
+
+        [Route("cargamassive")]
+        [HttpGet]
+        public ActionResult cargaMassive()
+        {
+            return Ok(new WC1Service().cargaMassive());
         }
     }
 }
