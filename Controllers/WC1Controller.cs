@@ -8,12 +8,12 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace protecta.WC1.api.Controllers
-{ 
+{
     [Route("api/[controller]")]
     [ApiController]
     public class WC1Controller : Controller
     {
-      
+
         public ActionResult Index()
         {
             return View();
@@ -54,6 +54,22 @@ namespace protecta.WC1.api.Controllers
         public ActionResult cargaMassive()
         {
             return Ok(new WC1Service().cargaMassive());
+        }
+
+        [Route("proccessmassive")]
+        [HttpGet]
+        public ActionResult procesocoincidencia()
+        {
+            return Ok(new WC1Service().procesoCoincidencia());
+        }
+
+        [Route("alertsprocess")]
+        [HttpPost]
+        public async Task<ResponseDTO> alertsProcess(ResquestAlert item)
+        {
+            ResponseDTO response = new ResponseDTO();
+            response = await new WC1Service().alertsProcess(item);
+            return response;
         }
     }
 }

@@ -69,7 +69,7 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public Field field { get; set; }
         [DataMember]
-        public List<string> fieldResult { get; set; }
+        public string fieldResult { get; set; }
         [DataMember]
         public string matchedDateTimeValue { get; set; }
         [DataMember]

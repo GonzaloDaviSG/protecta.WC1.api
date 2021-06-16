@@ -20,12 +20,22 @@ namespace protecta.WC1.api.Services
     public class WC1Service
     {
         WC1Repository _repository;
+        RequestWc1 objDefault;
         public WC1Service()
         {
             _repository = new WC1Repository();
+            objDefault = new RequestWc1();
+            objDefault.providerTypes = new List<string>() { "WATCHLIST" };
+            objDefault.entityType = "INDIVIDUAL";
+            objDefault.groupId = Config.AppSetting["WordlCheckOne:groupId"];
+            objDefault.customFields = new List<Properties>();
+            objDefault.secondaryFields = new List<Properties>();
+            objDefault.nameTransposition = true;
+            objDefault.secondaryFields.Add(new Properties() { typeId = "SFCT_3", value = "PER" });
         }
 
-        public List<ResponseWc1> Create(RequestWc1 item) {
+        public List<ResponseWc1> Create(RequestWc1 item)
+        {
             item.groupId = Config.AppSetting["WordlCheckOne:groupId"];
             string values = this.createCase(item);
 
@@ -36,7 +46,7 @@ namespace protecta.WC1.api.Services
             string values3 = this.getResults(obj.caseSystemId.ToString());
 
             List<ResponseWc1> items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>(values3);
-            ResponseDTO _item = this.SaveResult(items, obj.caseSystemId.ToString());
+            //ResponseDTO _item = this.SaveResult(item, obj.caseSystemId.ToString());
             return items;
         }
 
@@ -46,8 +56,11 @@ namespace protecta.WC1.api.Services
             string sMethod = $"/reference/countries";
             string response = this.getReques(sMethod);
             list = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
-            return list;            
+            return list;
         }
+
+
+
         internal object cargaMassive()
         {
             Dictionary<string, string> list = new Dictionary<string, string>();
@@ -66,7 +79,8 @@ namespace protecta.WC1.api.Services
         }
 
 
-        private string createCase(RequestWc1 item) {
+        private string createCase(RequestWc1 item)
+        {
             string sRequest = JsonConvert.SerializeObject(item);
             //string sRequest = JsonConvert.SerializeObject($"{{\"secondaryFields\":[],\"entityType\":\"INDIVIDUAL\",\"customFields\":[],\"groupId\":\"5jb8bs1tdnwv1fnb5aqmq6kyc\",\"providerTypes\":[\"WATCHLIST\"],\"name\":\"putin\"}}");
             string sMethod = "cases/screeningRequest";
@@ -76,7 +90,7 @@ namespace protecta.WC1.api.Services
         private string confirmCase(string caseId)
         {
             string sMethod = $"caseReferences";
-            string response = this.getReques(sMethod, "?caseId="+ caseId);
+            string response = this.getReques(sMethod, "?caseId=" + caseId);
             return response;
         }
         private string getResults(string caseSystemId)
@@ -85,7 +99,8 @@ namespace protecta.WC1.api.Services
             string response = this.getReques(sMethod + "/" + caseSystemId + "/results");
             return response;
         }
-        public string postReques(string sMethod, string sRequest) {
+        public string postReques(string sMethod, string sRequest)
+        {
             var url = Config.AppSetting["WordlCheckOne:protocol"] + Config.AppSetting["WordlCheckOne:gateWayHost"] + Config.AppSetting["WordlCheckOne:gateWayUrl"];
             string json = sRequest;
             DateTime dDate = DateTime.UtcNow;
@@ -95,7 +110,7 @@ namespace protecta.WC1.api.Services
             string firma = $"(request-target): post {Config.AppSetting["WordlCheckOne:gateWayUrl"]}{sMethod}\nhost: {Config.AppSetting["WordlCheckOne:gateWayHost"]}\ndate: {date}\ncontent-type: {Config.AppSetting["WordlCheckOne:content"]}\ncontent-length: {NLength}\n{json}";
             string base64 = this.generateAuthHeader(firma);
             string sAuthorisation = $"Signature keyId=\"{Config.AppSetting["WordlCheckOne:appKey"]}\",algorithm=\"hmac-sha256\",headers=\"(request-target) host date content-type content-length\" ,signature=\"{base64}\"";
-            
+
             var request = (HttpWebRequest)WebRequest.Create(url + sMethod);
             request.Method = "POST";
             request.ContentType = "application/json";
@@ -110,14 +125,15 @@ namespace protecta.WC1.api.Services
             try
             {
                 Thread.Sleep(2000);
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse()) { 
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
                     Stream Answer = response.GetResponseStream();
                     StreamReader _Answer = new StreamReader(Answer);
                     string jsontxt = _Answer.ReadToEnd();
                     return jsontxt;
                 }
                     ;
-                
+
             }
             catch (WebException ex)
             {
@@ -214,30 +230,94 @@ namespace protecta.WC1.api.Services
             return (Convert.ToBase64String(rawHmac));
         }
 
-        ResponseDTO SaveResult(List<ResponseWc1> items ,string SystemCaseId) {
+        ResponseDTO SaveResult(ResponseWc1 item, string SystemCaseId)
+        {
             ResponseDTO response = new ResponseDTO();
-            for (int i = 0; i < items.Count; i++)
+            //for (int i = 0; i < items.Count; i++)
+            //{
+            response = _repository.SaveResult(item, SystemCaseId);
+            if (response.nId > 0)
             {
-                response = _repository.SaveResult(items[i], SystemCaseId);
-                if (response.nId > 0) {
-                    if (items[i].sources.Count > 0)
-                        for (int j = 0; j < items[i].sources.Count; j++)
-                            _repository.SaveSources(items[i].sources[j], response.nId);
-                    if (items[i].categories.Count > 0)
-                        for (int j = 0; j < items[i].categories.Count; j++)
-                            _repository.SaveCategories(items[i].categories[j], response.nId);
-                    if (items[i].events.Count > 0)
-                        for (int j = 0; j < items[i].events.Count; j++)
-                            _repository.SaveEvents(items[i].events[j], response.nId);
-                    if (items[i].countryLinks.Count > 0)
-                        for (int j = 0; j < items[i].countryLinks.Count; j++)
-                            _repository.SaveCountryLinks(items[i].countryLinks[j], response.nId);
-                    if (items[i].identityDocuments.Count > 0)
-                        for (int j = 0; j < items[i].identityDocuments.Count; j++)
-                            _repository.SaveIdentityDocuments(items[i].identityDocuments[j], response.nId);
-                }
+                if (item.sources.Count > 0)
+                    for (int j = 0; j < item.sources.Count; j++)
+                        _repository.SaveSources(item.sources[j], response.nId);
+                if (item.categories.Count > 0)
+                    for (int j = 0; j < item.categories.Count; j++)
+                        _repository.SaveCategories(item.categories[j], response.nId);
+                if (item.events.Count > 0)
+                    for (int j = 0; j < item.events.Count; j++)
+                        _repository.SaveEvents(item.events[j], response.nId);
+                if (item.countryLinks.Count > 0)
+                    for (int j = 0; j < item.countryLinks.Count; j++)
+                        _repository.SaveCountryLinks(item.countryLinks[j], response.nId);
+                if (item.identityDocuments.Count > 0)
+                    for (int j = 0; j < item.identityDocuments.Count; j++)
+                        _repository.SaveIdentityDocuments(item.identityDocuments[j], response.nId);
             }
-            return new ResponseDTO();
+            //}
+            return response;
+        }
+
+        internal ResponseDTO procesoCoincidencia()
+        {
+
+            ResponseDTO response = new ResponseDTO();
+            List<ResponseWc1> items;
+            List<string> List = _repository.ListIndividuos();
+            try
+            {
+                //for (int i = 0; i < List.Count; i++)
+                //{
+                objDefault.name = "Alan Gabriel Ludwig García Pérez";//List[i];
+                string result = createCase(objDefault);
+                dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((obj.results).ToString());
+
+                //}
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+
+            return response;
+        }
+        internal async Task<ResponseDTO> alertsProcess(ResquestAlert item)
+        {
+            ResponseDTO response = new ResponseDTO();
+            await Task.Run(() =>
+            {
+                objDefault.name = item.name;
+                string result = createCase(objDefault);
+                dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                List<ResponseWc1> items = new List<ResponseWc1>();
+                try
+                {
+                    items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((obj.results).ToString());
+                    items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
+                    System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        try
+                        {
+                            items[i].categories = items[i].categories.Distinct().ToList();
+                            response = this.SaveResult(items[i], obj.caseSystemId.ToString());
+                            response = _repository.SaveResultCoincidencias(items[i], item, response.nId);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Console.WriteLine("error : " + i + " - " + items[i].primaryName + " - " + ex.Message);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Console.WriteLine("error : " + " - " + ex.Message);
+                }
+            });
+            return response;
         }
     }
 }
