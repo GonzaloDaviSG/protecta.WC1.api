@@ -291,7 +291,7 @@ namespace protecta.WC1.api.DTO
     public class EntityDetail
     {
         [DataMember]
-        public List<string> detailType { get; set; }
+        public string detailType { get; set; }
         [DataMember]
         public string text { get; set; }
         [DataMember]
@@ -379,11 +379,11 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public Provider provider { get; set; }
         [DataMember]
-        public List<string> providerSourceStatus { get; set; }
+        public string providerSourceStatus { get; set; }
         [DataMember]
         public string regionOfAuthority { get; set; }
         [DataMember]
-        public List<string> subscriptionCategory { get; set; }
+        public string subscriptionCategory { get; set; }
         [DataMember]
         public TypeSource type { get; set; }
     }

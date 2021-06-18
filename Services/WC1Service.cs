@@ -87,6 +87,13 @@ namespace protecta.WC1.api.Services
             string response = this.postReques(sMethod, sRequest);
             return response;
         }
+        public string getProfiles(string referenceId)
+        {
+            //string sRequest = JsonConvert.SerializeObject($"{{\"secondaryFields\":[],\"entityType\":\"INDIVIDUAL\",\"customFields\":[],\"groupId\":\"5jb8bs1tdnwv1fnb5aqmq6kyc\",\"providerTypes\":[\"WATCHLIST\"],\"name\":\"putin\"}}");
+            string sMethod = $"reference/profile/{referenceId}";
+            string response = this.getReques(sMethod, "");
+            return response;
+        }
         private string confirmCase(string caseId)
         {
             string sMethod = $"caseReferences";
@@ -233,9 +240,47 @@ namespace protecta.WC1.api.Services
         ResponseDTO SaveResult(ResponseWc1 item, string SystemCaseId)
         {
             ResponseDTO response = new ResponseDTO();
-            //for (int i = 0; i < items.Count; i++)
-            //{
+            ResponseProfileDTO profile = new ResponseProfileDTO();
+            string resultado = this.getProfiles(item.referenceId);
+            profile = JsonConvert.DeserializeObject<ResponseProfileDTO>(resultado);
             response = _repository.SaveResult(item, SystemCaseId);
+
+            if (response.nId > 0)
+            {
+                 _repository.SaveProfile(profile, item.resultId, response.nId);
+                if (item.sources.Count > 0)
+                    for (int j = 0; j < item.sources.Count; j++)
+                        _repository.SaveSources(item.sources[j], response.nId);
+                if (item.categories.Count > 0)
+                    for (int j = 0; j < item.categories.Count; j++)
+                        _repository.SaveCategories(item.categories[j], response.nId);
+                if (item.events.Count > 0)
+                    for (int j = 0; j < item.events.Count; j++)
+                        _repository.SaveEvents(item.events[j], response.nId);
+                if (item.countryLinks.Count > 0)
+                    for (int j = 0; j < item.countryLinks.Count; j++)
+                        _repository.SaveCountryLinks(item.countryLinks[j], response.nId);
+                if (item.identityDocuments.Count > 0)
+                    for (int j = 0; j < item.identityDocuments.Count; j++)
+                        _repository.SaveIdentityDocuments(item.identityDocuments[j], response.nId);
+
+                if (profile.sources.Count > 0)
+                    for (int j = 0; j < profile.sources.Count; j++)
+                        _repository.SaveDetailSources(profile.sources[j], response.nId);
+                if (profile.weblinks.Count > 0)
+                    for (int j = 0; j < profile.weblinks.Count; j++)
+                        _repository.SaveWebLinks(profile.weblinks[j], response.nId);
+                if (profile.sources.Count > 0)
+                    for (int j = 0; j < profile.details.Count; j++)
+                        _repository.SaveIdentityDocuments(profile.details[j], response.nId);
+            }
+            //}
+            return response;
+        }
+        ResponseDTO SaveProfile(ResponseProfileDTO item,string resulId,int id)
+        {
+            ResponseDTO response = new ResponseDTO();
+
             if (response.nId > 0)
             {
                 if (item.sources.Count > 0)
@@ -257,7 +302,6 @@ namespace protecta.WC1.api.Services
             //}
             return response;
         }
-
         internal ResponseDTO procesoCoincidencia()
         {
 
@@ -304,7 +348,6 @@ namespace protecta.WC1.api.Services
                             items[i].categories = items[i].categories.Distinct().ToList();
                             response = this.SaveResult(items[i], obj.caseSystemId.ToString());
                             response = _repository.SaveResultCoincidencias(items[i], item, response.nId);
-
                         }
                         catch (Exception ex)
                         {

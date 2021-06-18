@@ -71,5 +71,12 @@ namespace protecta.WC1.api.Controllers
             response = await new WC1Service().alertsProcess(item);
             return response;
         }
+
+        [Route("getprofiles")]
+        [HttpGet("getprofiles/{referenceId}")]
+        public ActionResult getProfiles(string referenceId)
+        {
+            return Ok(new WC1Service().getProfiles(referenceId));
+        }
     }
 }

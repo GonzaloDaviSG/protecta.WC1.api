@@ -240,7 +240,192 @@ namespace protecta.WC1.api.Repository
             return Lista;
         }
 
-        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item , int id)
+        internal ResponseDTO SaveDetail(EntityDetail entityDetail, int nId)
+        {
+            ResponseDTO respo = new ResponseDTO();
+            try
+            {
+                //matchedNameType
+                OracleParameter P_NID_COINCIDENCIA = new OracleParameter("P_NID_COINCIDENCIA", OracleDbType.Int32, nId, ParameterDirection.Input);
+                OracleParameter P_SDETAILTYPE = new OracleParameter("P_SDETAILTYPE", OracleDbType.Varchar2, entityDetail.detailType, ParameterDirection.Input);
+                OracleParameter P_STEXT = new OracleParameter("STEXT", OracleDbType.Varchar2, entityDetail.text, ParameterDirection.Input);
+                OracleParameter P_STITLE = new OracleParameter("STITLE", OracleDbType.Varchar2, entityDetail.title, ParameterDirection.Input);
+
+
+                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
+                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
+
+                OracleParameter[] parameters = new OracleParameter[] { P_NID_COINCIDENCIA, P_SDETAILTYPE, P_STITLE, P_STEXT, P_NCODE,P_SMESSAGE};
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_DETAIL(:P_NID_COINCIDENCIA, :P_SDETAILTYPE, :P_STITLE, :P_STEXT, :P_NCODE, :P_SMESSAGE);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+
+                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
+                respo.sMessage = P_SMESSAGE.Value.ToString();
+                this.context.Database.CloseConnection();
+
+                this.context.Database.CloseConnection();
+                return respo;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        internal ResponseDTO SaveWebLinks(File file, int nId)
+        {
+            ResponseDTO respo = new ResponseDTO();
+            try
+            {
+                //matchedNameType
+                OracleParameter P_NID_COINCIDENCIA = new OracleParameter("P_NID_COINCIDENCIA", OracleDbType.Int32, nId, ParameterDirection.Input);
+                OracleParameter P_SCAPTION = new OracleParameter("P_SCAPTION", OracleDbType.Varchar2, file.caption, ParameterDirection.Input);
+                OracleParameter P_STAGS = new OracleParameter("P_STAGS", OracleDbType.Varchar2, file.tags, ParameterDirection.Input);
+                OracleParameter P_SURI = new OracleParameter("P_SURI", OracleDbType.Varchar2, file.uri, ParameterDirection.Input);
+
+
+                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
+                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
+
+                OracleParameter[] parameters = new OracleParameter[] { P_NID_COINCIDENCIA, P_SCAPTION, P_STAGS, P_SURI, P_NCODE, P_SMESSAGE };
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_LINKS(:P_NID_COINCIDENCIA, :P_SCAPTION, :P_STAGS, :P_SURI, :P_NCODE, :P_SMESSAGE);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+
+                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
+                respo.sMessage = P_SMESSAGE.Value.ToString();
+                this.context.Database.CloseConnection();
+
+                this.context.Database.CloseConnection();
+                return respo;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        internal ResponseDTO SaveDetailSources(ActionEntitySource sourse, int nId)
+        {
+            ResponseDTO respo = new ResponseDTO();
+            try
+            {
+                //matchedNameType
+                OracleParameter P_NID_COINCIDENCIA = new OracleParameter("P_NID_COINCIDENCIA", OracleDbType.Int32, nId, System.Data.ParameterDirection.Input);
+                OracleParameter P_SABBREVIATION = new OracleParameter("P_SABBREVIATION", OracleDbType.Varchar2, sourse.abbreviation, ParameterDirection.Input);
+                OracleParameter P_SCREATIONDATE = new OracleParameter("P_SCREATIONDATE", OracleDbType.Varchar2, sourse.creationDate, ParameterDirection.Input);
+                OracleParameter P_SIMPORTIDENTIFIER = new OracleParameter("P_SIMPORTIDENTIFIER", OracleDbType.Varchar2, sourse.importIdentifier, ParameterDirection.Input);
+                OracleParameter P_SNAME = new OracleParameter("P_SNAME", OracleDbType.Varchar2, sourse.name, ParameterDirection.Input);
+                OracleParameter P_SIDENTIFIER = new OracleParameter("P_SIDENTIFIER", OracleDbType.Varchar2, sourse.identifier, ParameterDirection.Input);
+                OracleParameter P_SPROVIDERSOURCESTATUS = new OracleParameter("P_SPROVIDERSOURCESTATUS", OracleDbType.Varchar2, sourse.providerSourceStatus, ParameterDirection.Input);
+                OracleParameter P_SREGIONOFAUTHORITY = new OracleParameter("P_SREGIONOFAUTHORITY", OracleDbType.Varchar2, sourse.regionOfAuthority, ParameterDirection.Input);
+                OracleParameter P_SSUBSCRIPTIONCATEGORY = new OracleParameter("P_SSUBSCRIPTIONCATEGORY", OracleDbType.Varchar2, sourse.subscriptionCategory, ParameterDirection.Input);
+                OracleParameter P_SPROVIDERCODE = new OracleParameter("P_SPROVIDERCODE", OracleDbType.Varchar2, sourse.provider.code, ParameterDirection.Input);
+                OracleParameter P_SPROVIDERIDENTIFIER = new OracleParameter("P_SPROVIDERIDENTIFIER", OracleDbType.Varchar2, sourse.provider.identifier, ParameterDirection.Input);
+                OracleParameter P_SPROVIDERMASTER = new OracleParameter("P_SPROVIDERMASTER", OracleDbType.Varchar2, sourse.provider.master, ParameterDirection.Input);
+                OracleParameter P_SPROVIDERNAME = new OracleParameter("P_SPROVIDERNAME", OracleDbType.Varchar2, sourse.provider.name, ParameterDirection.Input);
+                OracleParameter P_STYPECATEGORYDESCRIPTION = new OracleParameter("P_STYPECATEGORYDESCRIPTION", OracleDbType.Varchar2, sourse.type.category.description, ParameterDirection.Input);
+                OracleParameter P_STYPECATEGORYIDENTIFIER = new OracleParameter("P_STYPECATEGORYIDENTIFIER", OracleDbType.Varchar2, sourse.type.category.identifier, ParameterDirection.Input);
+                OracleParameter P_STYPECATEGORYNAME = new OracleParameter("P_STYPECATEGORYNAME", OracleDbType.Varchar2, sourse.type.category.name, ParameterDirection.Input);
+                OracleParameter P_STYPEIDENTIFIER = new OracleParameter("P_STYPEIDENTIFIER", OracleDbType.Varchar2, sourse.type.identifier, ParameterDirection.Input);
+                OracleParameter P_STYPENAME = new OracleParameter("P_STYPENAME", OracleDbType.Varchar2, sourse.type.name, ParameterDirection.Input);
+
+                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
+                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
+
+                OracleParameter[] parameters = new OracleParameter[] { P_NID_COINCIDENCIA, P_SABBREVIATION, P_SCREATIONDATE, P_SIMPORTIDENTIFIER, P_SNAME, P_SIDENTIFIER, P_SPROVIDERSOURCESTATUS,
+                    P_SREGIONOFAUTHORITY, P_SSUBSCRIPTIONCATEGORY, P_SPROVIDERCODE, P_SPROVIDERIDENTIFIER, P_SPROVIDERMASTER, P_SPROVIDERNAME, P_STYPECATEGORYDESCRIPTION, P_STYPECATEGORYIDENTIFIER,
+                    P_STYPECATEGORYNAME, P_STYPEIDENTIFIER, P_STYPENAME, P_NCODE, P_SMESSAGE};
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_DETAIL_SOURCE(:P_NID_COINCIDENCIA, :P_SABBREVIATION, :P_SCREATIONDATE, :P_SIMPORTIDENTIFIER, :P_SNAME, :P_SIDENTIFIER, :P_SPROVIDERSOURCESTATUS,
+                    :P_SREGIONOFAUTHORITY, :P_SSUBSCRIPTIONCATEGORY, :P_SPROVIDERCODE, :P_SPROVIDERIDENTIFIER, :P_SPROVIDERMASTER, :P_SPROVIDERNAME, :P_STYPECATEGORYDESCRIPTION, :P_STYPECATEGORYIDENTIFIER,
+                    :P_STYPECATEGORYNAME, :P_STYPEIDENTIFIER, :P_STYPENAME, :P_NCODE, :P_SMESSAGE);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+
+                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
+                respo.sMessage = P_SMESSAGE.Value.ToString();
+                this.context.Database.CloseConnection();
+
+                this.context.Database.CloseConnection();
+                return respo;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        internal ResponseDTO SaveProfile(ResponseProfileDTO item, string resulId, int id)
+        {
+            ResponseDTO respo = new ResponseDTO();
+            try
+            {
+                //matchedNameType
+                OracleParameter P_NID_COINCIDENCIA = new OracleParameter("P_NID_COINCIDENCIA", OracleDbType.Int32, id, ParameterDirection.Input);
+                OracleParameter P_SRESULTID = new OracleParameter("P_SRESULTID", OracleDbType.Varchar2, resulId, ParameterDirection.Input);
+                OracleParameter P_SACTIVE = new OracleParameter("P_SACTIVE", OracleDbType.Varchar2, item.active, ParameterDirection.Input);
+                OracleParameter P_SCATEGORY = new OracleParameter("P_SCATEGORY", OracleDbType.Varchar2, item.category, ParameterDirection.Input);
+                OracleParameter P_SCOMMENTS = new OracleParameter("P_SCOMMENTS", OracleDbType.Varchar2, item.comments, ParameterDirection.Input);
+                OracleParameter P_SCREATIONDATE = new OracleParameter("P_SCREATIONDATE", OracleDbType.Varchar2, item.creationDate, ParameterDirection.Input);
+                OracleParameter P_SDELETIONDATE = new OracleParameter("P_SDELETIONDATE", OracleDbType.Varchar2, item.deletionDate, ParameterDirection.Input);
+                OracleParameter P_SDESCRIPTION = new OracleParameter("P_SDESCRIPTION", OracleDbType.Varchar2, item.description, ParameterDirection.Input);
+                OracleParameter P_SENTITYID = new OracleParameter("P_SENTITYID", OracleDbType.Varchar2, item.entityId, ParameterDirection.Input);
+                OracleParameter P_SEXTERNALIMPORTID = new OracleParameter("P_SEXTERNALIMPORTID", OracleDbType.Varchar2, item.externalImportId, ParameterDirection.Input);
+
+                OracleParameter P_SLASTADJUNTCHANGEDATE = new OracleParameter("P_SLASTADJUNTCHANGEDATE", OracleDbType.Varchar2, item.lastAdjunctChangeDate, ParameterDirection.Input);
+                OracleParameter P_SMODIFICATIONDATE = new OracleParameter("P_SMODIFICATIONDATE", OracleDbType.Varchar2, item.modificationDate, ParameterDirection.Input);
+                OracleParameter P_SSOURCEDESCRIPTION = new OracleParameter("P_SSOURCEDESCRIPTION", OracleDbType.Varchar2, item.sourceDescription, ParameterDirection.Input);
+                OracleParameter P_SSUBCATEGORY = new OracleParameter("P_SSUBCATEGORY", OracleDbType.Varchar2, item.subCategory, ParameterDirection.Input);
+                OracleParameter P_SUPDATECATEGORY = new OracleParameter("P_SUPDATECATEGORY", OracleDbType.Varchar2, item.updateCategory, ParameterDirection.Input);
+                OracleParameter P_SGENDER = new OracleParameter("P_SGENDER", OracleDbType.Varchar2, item.gender, ParameterDirection.Input);
+                OracleParameter P_SAGEASOFDATE = new OracleParameter("P_SAGEASOFDATE", OracleDbType.Varchar2, item.ageAsOfDate, ParameterDirection.Input);
+                OracleParameter P_SISDECEASED = new OracleParameter("P_SISDECEASED", OracleDbType.Varchar2, item.isDeceased, ParameterDirection.Input);
+                OracleParameter P_SAGE = new OracleParameter("P_SAGE", OracleDbType.Varchar2, item.age, ParameterDirection.Input);
+                OracleParameter P_SENTITYTYPE = new OracleParameter("P_SENTITYTYPE", OracleDbType.Varchar2, item.entityType, ParameterDirection.Input);
+
+                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
+                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
+
+                OracleParameter[] parameters = new OracleParameter[] { P_NID_COINCIDENCIA, P_SRESULTID, P_SACTIVE, P_SCATEGORY, P_SCOMMENTS, P_SCREATIONDATE, P_SDELETIONDATE,
+                P_SDESCRIPTION,P_SENTITYID,P_SEXTERNALIMPORTID,P_SLASTADJUNTCHANGEDATE,P_SMODIFICATIONDATE,P_SSOURCEDESCRIPTION,P_SSUBCATEGORY,P_SUPDATECATEGORY,P_SGENDER,
+                P_SAGEASOFDATE,P_SISDECEASED,P_SAGE,P_SENTITYTYPE,P_NCODE,P_SMESSAGE};
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_PROFILE(:P_NID_COINCIDENCIA, :P_SRESULTID, :P_SACTIVE, :P_SCATEGORY, :P_SCOMMENTS, :P_SCREATIONDATE, :P_SDELETIONDATE,
+                            :P_SDESCRIPTION, :P_SENTITYID, :P_SEXTERNALIMPORTID, :P_SLASTADJUNTCHANGEDATE, :P_SMODIFICATIONDATE, :P_SSOURCEDESCRIPTION, :P_SSUBCATEGORY, :P_SUPDATECATEGORY, :P_SGENDER,
+                            :P_SAGEASOFDATE, :P_SISDECEASED, :P_SAGE, :P_SENTITYTYPE, :P_NCODE, :P_SMESSAGE);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+
+                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
+                respo.sMessage = P_SMESSAGE.Value.ToString();
+                this.context.Database.CloseConnection();
+
+                this.context.Database.CloseConnection();
+                return respo;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id)
         {
             ResponseDTO response = new ResponseDTO();
             for (int i = 0; i < responseWc1.categories.Count; i++)
