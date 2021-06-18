@@ -270,9 +270,9 @@ namespace protecta.WC1.api.Services
                 if (profile.weblinks.Count > 0)
                     for (int j = 0; j < profile.weblinks.Count; j++)
                         _repository.SaveWebLinks(profile.weblinks[j], response.nId);
-                if (profile.sources.Count > 0)
+                if (profile.details.Count > 0)
                     for (int j = 0; j < profile.details.Count; j++)
-                        _repository.SaveIdentityDocuments(profile.details[j], response.nId);
+                        _repository.SaveDetail(profile.details[j], response.nId);
             }
             //}
             return response;
