@@ -8,6 +8,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Web;
+using System.Web.Http;
 using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -84,26 +86,42 @@ namespace protecta.WC1.api.Services
             string sRequest = JsonConvert.SerializeObject(item);
             //string sRequest = JsonConvert.SerializeObject($"{{\"secondaryFields\":[],\"entityType\":\"INDIVIDUAL\",\"customFields\":[],\"groupId\":\"5jb8bs1tdnwv1fnb5aqmq6kyc\",\"providerTypes\":[\"WATCHLIST\"],\"name\":\"putin\"}}");
             string sMethod = "cases/screeningRequest";
-            string response = this.postReques(sMethod, sRequest);
+            string response = "";
+            do
+            {
+                response = this.postReques(sMethod, sRequest);
+            } while (response == "429");
             return response;
         }
         public string getProfiles(string referenceId)
         {
             //string sRequest = JsonConvert.SerializeObject($"{{\"secondaryFields\":[],\"entityType\":\"INDIVIDUAL\",\"customFields\":[],\"groupId\":\"5jb8bs1tdnwv1fnb5aqmq6kyc\",\"providerTypes\":[\"WATCHLIST\"],\"name\":\"putin\"}}");
             string sMethod = $"reference/profile/{referenceId}";
-            string response = this.getReques(sMethod, "");
+            string response = "";
+            do
+            {
+                response = this.getReques(sMethod, "");
+            } while (response == "429");
             return response;
         }
         private string confirmCase(string caseId)
         {
             string sMethod = $"caseReferences";
-            string response = this.getReques(sMethod, "?caseId=" + caseId);
+            string response = "";
+            do
+            {
+                response = this.getReques(sMethod, "?caseId=" + caseId);
+            } while (response == "429");
             return response;
         }
         private string getResults(string caseSystemId)
         {
             string sMethod = $"cases";
-            string response = this.getReques(sMethod + "/" + caseSystemId + "/results");
+            string response = "";
+            do
+            {
+                response = this.getReques(sMethod + "/" + caseSystemId + "/results");
+            } while (response == "429");
             return response;
         }
         public string postReques(string sMethod, string sRequest)
@@ -131,15 +149,20 @@ namespace protecta.WC1.api.Services
             newStream.Write(byte1, 0, NLength);
             try
             {
-                Thread.Sleep(2000);
+                //Thread.Sleep(1000);
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
+                    string jsontxt = "";
+                    if ((int)response.StatusCode == 429)
+                    {
+                        return (int)response.StatusCode + "";
+                    }
                     Stream Answer = response.GetResponseStream();
                     StreamReader _Answer = new StreamReader(Answer);
-                    string jsontxt = _Answer.ReadToEnd();
+                    jsontxt = _Answer.ReadToEnd();
                     return jsontxt;
                 }
-                    ;
+
 
             }
             catch (WebException ex)
@@ -168,11 +191,19 @@ namespace protecta.WC1.api.Services
             try
             {
                 Thread.Sleep(2000);
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream Answer = response.GetResponseStream();
-                StreamReader _Answer = new StreamReader(Answer);
-                string jsontxt = _Answer.ReadToEnd();
-                return jsontxt;
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    string jsontxt = "";
+                    if ((int)response.StatusCode == 429)
+                    {
+                        return (int)response.StatusCode + "";
+                    }
+                    Stream Answer = response.GetResponseStream();
+                    StreamReader _Answer = new StreamReader(Answer);
+                    jsontxt = _Answer.ReadToEnd();
+                    return jsontxt;
+                };
+
             }
             catch (WebException ex)
             {
@@ -208,12 +239,16 @@ namespace protecta.WC1.api.Services
                 Thread.Sleep(2000);
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
+                    string jsontxt = "";
+                    if ((int)response.StatusCode == 429)
+                    {
+                        return (int)response.StatusCode + "";
+                    }
                     Stream Answer = response.GetResponseStream();
                     StreamReader _Answer = new StreamReader(Answer);
-                    string jsontxt = _Answer.ReadToEnd();
+                    jsontxt = _Answer.ReadToEnd();
                     return jsontxt;
-                }
-                    ;
+                };
 
             }
             catch (WebException ex)
@@ -247,7 +282,7 @@ namespace protecta.WC1.api.Services
 
             if (response.nId > 0)
             {
-                 _repository.SaveProfile(profile, item.resultId, response.nId);
+                _repository.SaveProfile(profile, item.resultId, response.nId);
                 if (item.sources.Count > 0)
                     for (int j = 0; j < item.sources.Count; j++)
                         _repository.SaveSources(item.sources[j], response.nId);
@@ -277,31 +312,7 @@ namespace protecta.WC1.api.Services
             //}
             return response;
         }
-        ResponseDTO SaveProfile(ResponseProfileDTO item,string resulId,int id)
-        {
-            ResponseDTO response = new ResponseDTO();
 
-            if (response.nId > 0)
-            {
-                if (item.sources.Count > 0)
-                    for (int j = 0; j < item.sources.Count; j++)
-                        _repository.SaveSources(item.sources[j], response.nId);
-                if (item.categories.Count > 0)
-                    for (int j = 0; j < item.categories.Count; j++)
-                        _repository.SaveCategories(item.categories[j], response.nId);
-                if (item.events.Count > 0)
-                    for (int j = 0; j < item.events.Count; j++)
-                        _repository.SaveEvents(item.events[j], response.nId);
-                if (item.countryLinks.Count > 0)
-                    for (int j = 0; j < item.countryLinks.Count; j++)
-                        _repository.SaveCountryLinks(item.countryLinks[j], response.nId);
-                if (item.identityDocuments.Count > 0)
-                    for (int j = 0; j < item.identityDocuments.Count; j++)
-                        _repository.SaveIdentityDocuments(item.identityDocuments[j], response.nId);
-            }
-            //}
-            return response;
-        }
         internal ResponseDTO procesoCoincidencia()
         {
 
@@ -327,18 +338,101 @@ namespace protecta.WC1.api.Services
 
             return response;
         }
+        internal async Task<ListResponseDTO> getCoincidenceNotPep(ResquestAlert item)
+        {
+            List<ResponseWc1> items = new List<ResponseWc1>();
+            ListResponseDTO response = new ListResponseDTO();
+            response.Data = new List<DataEntity>();
+            bool isExist = false;
+            await Task.Run(() =>
+            {
+                try
+                {
+                    objDefault.name = item.name;
+                    string result = createCase(objDefault);
+                    dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                    items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((obj.results).ToString());
+                    items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
+
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        if (items[i].categories.Contains("PEP"))
+                        {
+                            response.isPep = true;
+                        }
+                        else
+                        {
+                            response.isOtherList = true;
+                        }
+                        DataEntity dataitem = new DataEntity();
+                        dataitem.name = items[i].matchedTerm;
+                        dataitem.percentage = getPorcentaje(items[i].matchStrength);
+                        response.Data.Add(dataitem);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
+
+            });
+            return response;
+        }
+        public int getPorcentaje(string termn)
+        {
+            int value = 0;
+            switch (termn)
+            {
+                case "WEAK":
+                    value = 25;
+                    break;
+                case "MEDIUM":
+                    value = 50;
+                    break;
+                case "STRONG":
+                    value = 75;
+                    break;
+                case "EXACT":
+                    value = 100;
+                    break;
+            }
+            return value;
+        }
         internal async Task<ResponseDTO> alertsProcess(ResquestAlert item)
         {
+            List<ObjCaseDTO> Case = new List<ObjCaseDTO>();
             ResponseDTO response = new ResponseDTO();
             await Task.Run(() =>
             {
+                string result = "";
+                string objResult = "";
+                string caseId = "";
+                string caseSystemId = "";
+                Case = _repository.getCase(item.name);
                 objDefault.name = item.name;
-                string result = createCase(objDefault);
-                dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                if (Case.Count == 0)
+                {
+                    result = createCase(objDefault);
+                    dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                    objResult = obj.results.ToString();
+                    caseSystemId = obj.caseSystemId.ToString();
+                    caseId = obj.caseId.ToString();
+                }
+                else
+
+                {
+                    result = getResults(Case[0].SCaseSystemId);
+                    dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                    objResult = obj.ToString();
+                    caseSystemId = Case[0].SCaseSystemId;
+                    caseId = Case[0].SCaseId;
+                }
                 List<ResponseWc1> items = new List<ResponseWc1>();
+
                 try
                 {
-                    items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((obj.results).ToString());
+                    items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
                     items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
                     System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
                     for (int i = 0; i < items.Count; i++)
@@ -346,8 +440,8 @@ namespace protecta.WC1.api.Services
                         try
                         {
                             items[i].categories = items[i].categories.Distinct().ToList();
-                            response = this.SaveResult(items[i], obj.caseSystemId.ToString());
-                            response = _repository.SaveResultCoincidencias(items[i], item, response.nId);
+                            response = this.SaveResult(items[i], caseSystemId);
+                            response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId);
                         }
                         catch (Exception ex)
                         {
@@ -362,5 +456,16 @@ namespace protecta.WC1.api.Services
             });
             return response;
         }
+
+        //public Microsoft.AspNetCore.Mvc.ActionResult getprueba()
+        //{
+
+        //    return new System.Web.Http.Results.ResponseMessageResult(
+        //     Request.CreateErrorResponse(
+        //         (HttpStatusCode)422,
+        //         new HttpError("Something goes wrong")
+        //     )
+        // );
+        //}
     }
 }

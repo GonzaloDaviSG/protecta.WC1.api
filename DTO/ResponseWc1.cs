@@ -251,7 +251,7 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string suffix { get; set; }
         [DataMember]
-        public List<string> type { get; set; }
+        public string type { get; set; }
     }
 
     public class LanguageCode
@@ -317,11 +317,11 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string creationDate { get; set; }
         [DataMember]
-        public List<string> entityType { get; set; }
+        public string entityType { get; set; }
         [DataMember]
         public string modificationDate { get; set; }
         [DataMember]
-        public bool reversed { get; set; }
+        public bool? reversed { get; set; }
         [DataMember]
         public List<string> targetCategories { get; set; }
         [DataMember]
@@ -331,9 +331,9 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string targetPrimaryName { get; set; }
         [DataMember]
-        public List<string> type { get; set; }
+        public string type { get; set; }
         [DataMember]
-        public List<string> updateCategory { get; set; }
+        public string updateCategory { get; set; }
     }
 
     public class ActionEntity
@@ -407,7 +407,7 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string name { get; set; }
         [DataMember]
-        public TypeSource providerSourceTypes { get; set; }
+        public List<TypeSource> providerSourceTypes { get; set; }
     }
 
 
@@ -418,7 +418,7 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string identifier { get; set; }
         [DataMember]
-        public bool master { get; set; }
+        public string master { get; set; }
         [DataMember]
         public string name { get; set; }
     }
@@ -428,7 +428,7 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string caption { get; set; }
         [DataMember]
-        public string tags { get; set; }
+        public List<string> tags { get; set; }
         [DataMember]
         public string uri { get; set; }
     }

@@ -71,6 +71,12 @@ namespace protecta.WC1.api.Controllers
             response = await new WC1Service().alertsProcess(item);
             return response;
         }
+        [Route("getCoincidenceNotPep")]
+        [HttpPost]
+        public async Task<ListResponseDTO> getCoincidenceNotPep(ResquestAlert item)
+        {
+            return await new WC1Service().getCoincidenceNotPep(item);
+        }
 
         [Route("getprofiles")]
         [HttpGet("getprofiles/{referenceId}")]
@@ -78,5 +84,11 @@ namespace protecta.WC1.api.Controllers
         {
             return Ok(new WC1Service().getProfiles(referenceId));
         }
+        //[Route("getPrueba")]
+        //[HttpGet]
+        //public ActionResult Prueba()
+        //{
+        //    return Ok(new WC1Service().getprueba());
+        //}
     }
 }

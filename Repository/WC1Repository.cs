@@ -248,17 +248,17 @@ namespace protecta.WC1.api.Repository
                 //matchedNameType
                 OracleParameter P_NID_COINCIDENCIA = new OracleParameter("P_NID_COINCIDENCIA", OracleDbType.Int32, nId, ParameterDirection.Input);
                 OracleParameter P_SDETAILTYPE = new OracleParameter("P_SDETAILTYPE", OracleDbType.Varchar2, entityDetail.detailType, ParameterDirection.Input);
-                OracleParameter P_STEXT = new OracleParameter("STEXT", OracleDbType.Varchar2, entityDetail.text, ParameterDirection.Input);
-                OracleParameter P_STITLE = new OracleParameter("STITLE", OracleDbType.Varchar2, entityDetail.title, ParameterDirection.Input);
+                OracleParameter P_STEXT = new OracleParameter("P_STEXT", OracleDbType.Varchar2, entityDetail.text, ParameterDirection.Input);
+                OracleParameter P_STITLE = new OracleParameter("P_STITLE", OracleDbType.Varchar2, entityDetail.title, ParameterDirection.Input);
 
 
                 OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                 OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
 
-                OracleParameter[] parameters = new OracleParameter[] { P_NID_COINCIDENCIA, P_SDETAILTYPE, P_STITLE, P_STEXT, P_NCODE,P_SMESSAGE};
+                OracleParameter[] parameters = new OracleParameter[] { P_NID_COINCIDENCIA, P_SDETAILTYPE, P_STEXT, P_STITLE, P_NCODE,P_SMESSAGE};
                 var query = @"
                     BEGIN
-                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_DETAIL(:P_NID_COINCIDENCIA, :P_SDETAILTYPE, :P_STITLE, :P_STEXT, :P_NCODE, :P_SMESSAGE);
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_DETAIL(:P_NID_COINCIDENCIA, :P_SDETAILTYPE, :P_STEXT, :P_STITLE, :P_NCODE, :P_SMESSAGE);
                     END;
                     ";
                 this.context.Database.OpenConnection();
@@ -285,7 +285,7 @@ namespace protecta.WC1.api.Repository
                 //matchedNameType
                 OracleParameter P_NID_COINCIDENCIA = new OracleParameter("P_NID_COINCIDENCIA", OracleDbType.Int32, nId, ParameterDirection.Input);
                 OracleParameter P_SCAPTION = new OracleParameter("P_SCAPTION", OracleDbType.Varchar2, file.caption, ParameterDirection.Input);
-                OracleParameter P_STAGS = new OracleParameter("P_STAGS", OracleDbType.Varchar2, file.tags, ParameterDirection.Input);
+                OracleParameter P_STAGS = new OracleParameter("P_STAGS", OracleDbType.Varchar2, string.Join(',',file.tags), ParameterDirection.Input);
                 OracleParameter P_SURI = new OracleParameter("P_SURI", OracleDbType.Varchar2, file.uri, ParameterDirection.Input);
 
 
@@ -295,7 +295,7 @@ namespace protecta.WC1.api.Repository
                 OracleParameter[] parameters = new OracleParameter[] { P_NID_COINCIDENCIA, P_SCAPTION, P_STAGS, P_SURI, P_NCODE, P_SMESSAGE };
                 var query = @"
                     BEGIN
-                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_LINKS(:P_NID_COINCIDENCIA, :P_SCAPTION, :P_STAGS, :P_SURI, :P_NCODE, :P_SMESSAGE);
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_WEBLINKS(:P_NID_COINCIDENCIA, :P_SCAPTION, :P_STAGS, :P_SURI, :P_NCODE, :P_SMESSAGE);
                     END;
                     ";
                 this.context.Database.OpenConnection();
@@ -329,15 +329,17 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_SPROVIDERSOURCESTATUS = new OracleParameter("P_SPROVIDERSOURCESTATUS", OracleDbType.Varchar2, sourse.providerSourceStatus, ParameterDirection.Input);
                 OracleParameter P_SREGIONOFAUTHORITY = new OracleParameter("P_SREGIONOFAUTHORITY", OracleDbType.Varchar2, sourse.regionOfAuthority, ParameterDirection.Input);
                 OracleParameter P_SSUBSCRIPTIONCATEGORY = new OracleParameter("P_SSUBSCRIPTIONCATEGORY", OracleDbType.Varchar2, sourse.subscriptionCategory, ParameterDirection.Input);
-                OracleParameter P_SPROVIDERCODE = new OracleParameter("P_SPROVIDERCODE", OracleDbType.Varchar2, sourse.provider.code, ParameterDirection.Input);
-                OracleParameter P_SPROVIDERIDENTIFIER = new OracleParameter("P_SPROVIDERIDENTIFIER", OracleDbType.Varchar2, sourse.provider.identifier, ParameterDirection.Input);
-                OracleParameter P_SPROVIDERMASTER = new OracleParameter("P_SPROVIDERMASTER", OracleDbType.Varchar2, sourse.provider.master, ParameterDirection.Input);
-                OracleParameter P_SPROVIDERNAME = new OracleParameter("P_SPROVIDERNAME", OracleDbType.Varchar2, sourse.provider.name, ParameterDirection.Input);
-                OracleParameter P_STYPECATEGORYDESCRIPTION = new OracleParameter("P_STYPECATEGORYDESCRIPTION", OracleDbType.Varchar2, sourse.type.category.description, ParameterDirection.Input);
-                OracleParameter P_STYPECATEGORYIDENTIFIER = new OracleParameter("P_STYPECATEGORYIDENTIFIER", OracleDbType.Varchar2, sourse.type.category.identifier, ParameterDirection.Input);
-                OracleParameter P_STYPECATEGORYNAME = new OracleParameter("P_STYPECATEGORYNAME", OracleDbType.Varchar2, sourse.type.category.name, ParameterDirection.Input);
-                OracleParameter P_STYPEIDENTIFIER = new OracleParameter("P_STYPEIDENTIFIER", OracleDbType.Varchar2, sourse.type.identifier, ParameterDirection.Input);
-                OracleParameter P_STYPENAME = new OracleParameter("P_STYPENAME", OracleDbType.Varchar2, sourse.type.name, ParameterDirection.Input);
+                OracleParameter P_SPROVIDERCODE = new OracleParameter("P_SPROVIDERCODE", OracleDbType.Varchar2, sourse.provider == null ? "": sourse.provider.code, ParameterDirection.Input);
+                OracleParameter P_SPROVIDERIDENTIFIER = new OracleParameter("P_SPROVIDERIDENTIFIER", OracleDbType.Varchar2, sourse.provider == null ? "" : sourse.provider.identifier, ParameterDirection.Input);
+                OracleParameter P_SPROVIDERMASTER = new OracleParameter("P_SPROVIDERMASTER", OracleDbType.Varchar2, sourse.provider == null ? "0" : sourse.provider.master == "true" ? "1": "0", ParameterDirection.Input);
+                OracleParameter P_SPROVIDERNAME = new OracleParameter("P_SPROVIDERNAME", OracleDbType.Varchar2, sourse.provider == null ? "": sourse.provider.name , ParameterDirection.Input);
+                bool isObjectCategory = sourse.type == null ? false : sourse.type.category == null ? false : true;
+                OracleParameter P_STYPECATEGORYDESCRIPTION = new OracleParameter("P_STYPECATEGORYDESCRIPTION", OracleDbType.Varchar2, (isObjectCategory ? sourse.type.category.description : ""), ParameterDirection.Input);
+                OracleParameter P_STYPECATEGORYIDENTIFIER = new OracleParameter("P_STYPECATEGORYIDENTIFIER", OracleDbType.Varchar2, (isObjectCategory ? sourse.type.category.identifier : ""), ParameterDirection.Input);
+                OracleParameter P_STYPECATEGORYNAME = new OracleParameter("P_STYPECATEGORYNAME", OracleDbType.Varchar2, (isObjectCategory ? sourse.type.category.name : "") , ParameterDirection.Input);
+                bool isObjectType = sourse.type == null ? false : true;
+                OracleParameter P_STYPEIDENTIFIER = new OracleParameter("P_STYPEIDENTIFIER", OracleDbType.Varchar2, (isObjectType ? sourse.type.identifier : ""), ParameterDirection.Input);
+                OracleParameter P_STYPENAME = new OracleParameter("P_STYPENAME", OracleDbType.Varchar2, (isObjectType ? sourse.type.name : ""), ParameterDirection.Input);
 
                 OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                 OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
@@ -376,7 +378,7 @@ namespace protecta.WC1.api.Repository
                 //matchedNameType
                 OracleParameter P_NID_COINCIDENCIA = new OracleParameter("P_NID_COINCIDENCIA", OracleDbType.Int32, id, ParameterDirection.Input);
                 OracleParameter P_SRESULTID = new OracleParameter("P_SRESULTID", OracleDbType.Varchar2, resulId, ParameterDirection.Input);
-                OracleParameter P_SACTIVE = new OracleParameter("P_SACTIVE", OracleDbType.Varchar2, item.active, ParameterDirection.Input);
+                OracleParameter P_SACTIVE = new OracleParameter("P_SACTIVE", OracleDbType.Varchar2, item.active == "true" ? "1" : "0", ParameterDirection.Input);
                 OracleParameter P_SCATEGORY = new OracleParameter("P_SCATEGORY", OracleDbType.Varchar2, item.category, ParameterDirection.Input);
                 OracleParameter P_SCOMMENTS = new OracleParameter("P_SCOMMENTS", OracleDbType.Varchar2, item.comments, ParameterDirection.Input);
                 OracleParameter P_SCREATIONDATE = new OracleParameter("P_SCREATIONDATE", OracleDbType.Varchar2, item.creationDate, ParameterDirection.Input);
@@ -392,7 +394,7 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_SUPDATECATEGORY = new OracleParameter("P_SUPDATECATEGORY", OracleDbType.Varchar2, item.updateCategory, ParameterDirection.Input);
                 OracleParameter P_SGENDER = new OracleParameter("P_SGENDER", OracleDbType.Varchar2, item.gender, ParameterDirection.Input);
                 OracleParameter P_SAGEASOFDATE = new OracleParameter("P_SAGEASOFDATE", OracleDbType.Varchar2, item.ageAsOfDate, ParameterDirection.Input);
-                OracleParameter P_SISDECEASED = new OracleParameter("P_SISDECEASED", OracleDbType.Varchar2, item.isDeceased, ParameterDirection.Input);
+                OracleParameter P_SISDECEASED = new OracleParameter("P_SISDECEASED", OracleDbType.Varchar2, item.isDeceased == "true" ? "1" : "0", ParameterDirection.Input);
                 OracleParameter P_SAGE = new OracleParameter("P_SAGE", OracleDbType.Varchar2, item.age, ParameterDirection.Input);
                 OracleParameter P_SENTITYTYPE = new OracleParameter("P_SENTITYTYPE", OracleDbType.Varchar2, item.entityType, ParameterDirection.Input);
 
@@ -425,7 +427,7 @@ namespace protecta.WC1.api.Repository
             }
         }
 
-        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id)
+        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id,string caseSystemId , string caseId)
         {
             ResponseDTO response = new ResponseDTO();
             for (int i = 0; i < responseWc1.categories.Count; i++)
@@ -444,14 +446,18 @@ namespace protecta.WC1.api.Repository
                     OracleParameter P_SMATCHEDTERM = new OracleParameter("P_SMATCHEDTERM", OracleDbType.NVarchar2, responseWc1.matchedTerm, System.Data.ParameterDirection.Input);
                     OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int32, item.tipoCargaId, System.Data.ParameterDirection.Input);
                     OracleParameter P_SNOMBREBUSQUEDA = new OracleParameter("P_SNOMBREBUSQUEDA", OracleDbType.NVarchar2, responseWc1.submittedTerm, System.Data.ParameterDirection.Input);
+
+                    OracleParameter P_SCASESYSTEMID = new OracleParameter("P_SCASESYSTEMID", OracleDbType.NVarchar2, caseSystemId, System.Data.ParameterDirection.Input);
+                    OracleParameter P_SCASEID = new OracleParameter("P_SCASEID", OracleDbType.NVarchar2, caseId, System.Data.ParameterDirection.Input);
+
                     OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                     OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
                     OracleParameter[] parameters = new OracleParameter[] { P_NIDALERTA, P_NPERIODO_PROCESO, P_NIDRESULTADO, P_NMACHTSTRENGTHVALUE, P_NIDTIPOLISTA,
-                        P_SORIGEN,P_SMATCHEDTERM,P_NTIPOCARGA,P_SNOMBREBUSQUEDA, P_NCODE, P_SMESSAGE };
+                        P_SORIGEN,P_SMATCHEDTERM,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID, P_NCODE, P_SMESSAGE };
                     var query = @"
                     BEGIN
                         LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_RESULT_COINCIDENCIA(:P_NIDALERTA, :P_NPERIODO_PROCESO, :P_NIDRESULTADO,:P_NMACHTSTRENGTHVALUE, :P_NIDTIPOLISTA,
-                        :P_SORIGEN,:P_SMATCHEDTERM,:P_NTIPOCARGA,:P_SNOMBREBUSQUEDA, :P_NCODE, :P_SMESSAGE);
+                        :P_SORIGEN,:P_SMATCHEDTERM,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_NCODE, :P_SMESSAGE);
                     END;
                     ";
                     this.context.Database.OpenConnection();
@@ -506,6 +512,40 @@ namespace protecta.WC1.api.Repository
                 this.context.Database.CloseConnection();
 
                 this.context.Database.CloseConnection();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        internal List<ObjCaseDTO> getCase(string name)
+        {
+            List<ObjCaseDTO> List = new List<ObjCaseDTO>();
+            try
+            {
+                //matchedNameType
+                OracleParameter P_SNAME = new OracleParameter("P_SNAME", OracleDbType.Varchar2, name, ParameterDirection.Input);
+                OracleParameter P_LISTCASEID = new OracleParameter("P_LISTCASEID", OracleDbType.RefCursor, System.Data.ParameterDirection.Output);
+                OracleParameter[] parameters = new OracleParameter[] { P_SNAME, P_LISTCASEID };
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_GET_EXIST_CASE(:P_SNAME, :P_LISTCASEID);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+                OracleDataReader odr = ((OracleRefCursor)P_LISTCASEID.Value).GetDataReader();
+                while (odr.Read())
+                {
+                    ObjCaseDTO item = new ObjCaseDTO();                    
+                    item.SCaseId = odr["SCASEID"].ToString();
+                    item.SCaseSystemId = odr["SCASESYSTEMID"].ToString();
+                    List.Add(item);
+                }
+                odr.Close();
+                this.context.Database.CloseConnection();
+                return List;
             }
             catch (Exception ex)
             {

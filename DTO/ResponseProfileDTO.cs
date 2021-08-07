@@ -13,11 +13,11 @@ namespace protecta.WC1.api.DTO
         //[DataMember]
         //public string actions { get; set;}
         [DataMember]
-        public bool active { get; set; }
+        public string active { get; set; }
         [DataMember]
-        public Address addresses { get; set; }
+        public List<Address> addresses { get; set; }
         [DataMember]
-        public EntityAssociates associates { get; set; }
+        public List<EntityAssociates> associates { get; set; }
         [DataMember]
         public string category { get; set; }
         [DataMember]
@@ -75,7 +75,7 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string ageAsOfDate { get; set; }
         [DataMember]
-        public bool isDeceased { get; set; }
+        public string isDeceased { get; set; }
         [DataMember]
         public List<Events> events { get; set; }
         //[DataMember]

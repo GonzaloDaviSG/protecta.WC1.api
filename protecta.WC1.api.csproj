@@ -13,9 +13,9 @@
   <ItemGroup>
     <PackageReference Include="log4net" Version="2.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
     <PackageReference Include="Oracle.EntityFrameworkCore" Version="2.19.80" />
     <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.91" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
 
 </Project>
