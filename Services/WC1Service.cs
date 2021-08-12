@@ -162,8 +162,6 @@ namespace protecta.WC1.api.Services
                     jsontxt = _Answer.ReadToEnd();
                     return jsontxt;
                 }
-
-
             }
             catch (WebException ex)
             {
@@ -279,37 +277,41 @@ namespace protecta.WC1.api.Services
             string resultado = this.getProfiles(item.referenceId);
             profile = JsonConvert.DeserializeObject<ResponseProfileDTO>(resultado);
             response = _repository.SaveResult(item, SystemCaseId);
-
-            if (response.nId > 0)
+            try
             {
-                _repository.SaveProfile(profile, item.resultId, response.nId);
-                if (item.sources.Count > 0)
-                    for (int j = 0; j < item.sources.Count; j++)
-                        _repository.SaveSources(item.sources[j], response.nId);
-                if (item.categories.Count > 0)
-                    for (int j = 0; j < item.categories.Count; j++)
-                        _repository.SaveCategories(item.categories[j], response.nId);
-                if (item.events.Count > 0)
-                    for (int j = 0; j < item.events.Count; j++)
-                        _repository.SaveEvents(item.events[j], response.nId);
-                if (item.countryLinks.Count > 0)
-                    for (int j = 0; j < item.countryLinks.Count; j++)
-                        _repository.SaveCountryLinks(item.countryLinks[j], response.nId);
-                if (item.identityDocuments.Count > 0)
-                    for (int j = 0; j < item.identityDocuments.Count; j++)
-                        _repository.SaveIdentityDocuments(item.identityDocuments[j], response.nId);
-
-                if (profile.sources.Count > 0)
-                    for (int j = 0; j < profile.sources.Count; j++)
-                        _repository.SaveDetailSources(profile.sources[j], response.nId);
-                if (profile.weblinks.Count > 0)
-                    for (int j = 0; j < profile.weblinks.Count; j++)
-                        _repository.SaveWebLinks(profile.weblinks[j], response.nId);
-                if (profile.details.Count > 0)
-                    for (int j = 0; j < profile.details.Count; j++)
-                        _repository.SaveDetail(profile.details[j], response.nId);
+                if (response.nId > 0)
+                {
+                    _repository.SaveProfile(profile, item.resultId, response.nId);
+                    if (item.sources.Count > 0)
+                        for (int j = 0; j < item.sources.Count; j++)
+                            _repository.SaveSources(item.sources[j], response.nId);
+                    if (item.categories.Count > 0)
+                        for (int j = 0; j < item.categories.Count; j++)
+                            _repository.SaveCategories(item.categories[j], response.nId);
+                    if (item.events.Count > 0)
+                        for (int j = 0; j < item.events.Count; j++)
+                            _repository.SaveEvents(item.events[j], response.nId);
+                    if (item.countryLinks.Count > 0)
+                        for (int j = 0; j < item.countryLinks.Count; j++)
+                            _repository.SaveCountryLinks(item.countryLinks[j], response.nId);
+                    if (item.identityDocuments.Count > 0)
+                        for (int j = 0; j < item.identityDocuments.Count; j++)
+                            _repository.SaveIdentityDocuments(item.identityDocuments[j], response.nId);
+                    if (profile.sources.Count > 0)
+                        for (int j = 0; j < profile.sources.Count; j++)
+                            _repository.SaveDetailSources(profile.sources[j], response.nId);
+                    if (profile.weblinks.Count > 0)
+                        for (int j = 0; j < profile.weblinks.Count; j++)
+                            _repository.SaveWebLinks(profile.weblinks[j], response.nId);
+                    if (profile.details.Count > 0)
+                        for (int j = 0; j < profile.details.Count; j++)
+                            _repository.SaveDetail(profile.details[j], response.nId);
+                }
             }
-            //}
+            catch (Exception ex)
+            {
+                throw;
+            }
             return response;
         }
 
@@ -340,8 +342,20 @@ namespace protecta.WC1.api.Services
         }
         internal async Task<ListResponseDTO> getCoincidenceNotPep(ResquestAlert item)
         {
-            List<ResponseWc1> items = new List<ResponseWc1>();
             ListResponseDTO response = new ListResponseDTO();
+            if (String.IsNullOrWhiteSpace(item.name))
+            {
+                response.isError = true;
+                response.messageError = "Ingrese un nombre de un cliente";
+                return response;
+            }
+            if (String.IsNullOrWhiteSpace(item.idDocNumber))
+            {
+                response.isError = true;
+                response.messageError = "Ingrese un numero de documento";
+                return response;
+            }
+            List<ResponseWc1> items = new List<ResponseWc1>();
             response.Data = new List<DataEntity>();
             bool isExist = false;
             await Task.Run(() =>
@@ -353,29 +367,34 @@ namespace protecta.WC1.api.Services
                     dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
                     items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((obj.results).ToString());
                     items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
-
                     for (int i = 0; i < items.Count; i++)
                     {
+                        DataEntity dataitem = new DataEntity();
                         if (items[i].categories.Contains("PEP"))
                         {
                             response.isPep = true;
+                            dataitem.name = items[i].matchedTerm;
+                            dataitem.percentage = getPorcentaje(items[i].matchStrength);
+                            List<IdentityDocuments> _items = items[i].identityDocuments.FindAll(t => t.type == "DNI");
+                            if (_items.Count > 0)
+                            {
+                                dataitem.documentNumber = _items[0].number;
+                                dataitem.documentType = _items[0].type;
+                            }
+                            response.Data.Add(dataitem);
                         }
                         else
-                        {
                             response.isOtherList = true;
-                        }
-                        DataEntity dataitem = new DataEntity();
-                        dataitem.name = items[i].matchedTerm;
-                        dataitem.percentage = getPorcentaje(items[i].matchStrength);
-                        response.Data.Add(dataitem);
+                        if (item.idDocNumber != "")
+                            if(!response.isIdNumber)
+                                response.isIdNumber = items[i].identityDocuments.Exists(t => t.number == item.idDocNumber);
+                        
                     }
-
                 }
                 catch (Exception ex)
                 {
                     throw;
                 }
-
             });
             return response;
         }
@@ -402,7 +421,10 @@ namespace protecta.WC1.api.Services
         internal async Task<ResponseDTO> alertsProcess(ResquestAlert item)
         {
             List<ObjCaseDTO> Case = new List<ObjCaseDTO>();
+            ResponseDTO _response = new ResponseDTO();
             ResponseDTO response = new ResponseDTO();
+            _response.sStatus = "NOT FOUND";
+            bool isCreate = false;
             await Task.Run(() =>
             {
                 string result = "";
@@ -418,9 +440,10 @@ namespace protecta.WC1.api.Services
                     objResult = obj.results.ToString();
                     caseSystemId = obj.caseSystemId.ToString();
                     caseId = obj.caseId.ToString();
+                    if (caseId != "")
+                        isCreate = true;
                 }
                 else
-
                 {
                     result = getResults(Case[0].SCaseSystemId);
                     dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
@@ -435,16 +458,27 @@ namespace protecta.WC1.api.Services
                     items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
                     items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
                     System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
+                    _response.data = items.Select(t => string.Join(",", t.categories.Distinct())).ToList();
+                    List<string> _categorys = _response.data.FindAll(t => t.Contains(","));
+                    _response.data = _response.data.FindAll(t => !t.Contains(","));
+                    for (int i = 0; i < _categorys.Count; i++)
+                    {
+                        _response.data.AddRange(_categorys[i].Split(",").ToList());
+                    }
+                    _response.data = _response.data.Distinct().ToList();
                     for (int i = 0; i < items.Count; i++)
                     {
+                        _response.sStatus = isCreate ? "OK" : "UPDATE";
                         try
                         {
                             items[i].categories = items[i].categories.Distinct().ToList();
                             response = this.SaveResult(items[i], caseSystemId);
                             response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId);
+                            _response.sMessage = response.sMessage;
                         }
                         catch (Exception ex)
                         {
+                            _response.sMessage = response.sMessage;
                             System.Console.WriteLine("error : " + i + " - " + items[i].primaryName + " - " + ex.Message);
                         }
                     }
@@ -454,7 +488,7 @@ namespace protecta.WC1.api.Services
                     System.Console.WriteLine("error : " + " - " + ex.Message);
                 }
             });
-            return response;
+            return _response;
         }
 
         //public Microsoft.AspNetCore.Mvc.ActionResult getprueba()

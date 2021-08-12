@@ -10,5 +10,7 @@ namespace protecta.WC1.api.DTO
         public int nId { get; set; }
         public int nCode {get;set;}
         public string sMessage { get; set; }
+        public string sStatus { get; set; }
+        public List<string> data { get; set; }
     }
 }
