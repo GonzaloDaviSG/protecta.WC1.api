@@ -255,7 +255,7 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                 OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
 
-                OracleParameter[] parameters = new OracleParameter[] { P_NID_COINCIDENCIA, P_SDETAILTYPE, P_STEXT, P_STITLE, P_NCODE,P_SMESSAGE};
+                OracleParameter[] parameters = new OracleParameter[] { P_NID_COINCIDENCIA, P_SDETAILTYPE, P_STEXT, P_STITLE, P_NCODE, P_SMESSAGE };
                 var query = @"
                     BEGIN
                         LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_DETAIL(:P_NID_COINCIDENCIA, :P_SDETAILTYPE, :P_STEXT, :P_STITLE, :P_NCODE, :P_SMESSAGE);
@@ -285,7 +285,7 @@ namespace protecta.WC1.api.Repository
                 //matchedNameType
                 OracleParameter P_NID_COINCIDENCIA = new OracleParameter("P_NID_COINCIDENCIA", OracleDbType.Int32, nId, ParameterDirection.Input);
                 OracleParameter P_SCAPTION = new OracleParameter("P_SCAPTION", OracleDbType.Varchar2, file.caption, ParameterDirection.Input);
-                OracleParameter P_STAGS = new OracleParameter("P_STAGS", OracleDbType.Varchar2, string.Join(',',file.tags), ParameterDirection.Input);
+                OracleParameter P_STAGS = new OracleParameter("P_STAGS", OracleDbType.Varchar2, string.Join(',', file.tags), ParameterDirection.Input);
                 OracleParameter P_SURI = new OracleParameter("P_SURI", OracleDbType.Varchar2, file.uri, ParameterDirection.Input);
 
 
@@ -329,14 +329,14 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_SPROVIDERSOURCESTATUS = new OracleParameter("P_SPROVIDERSOURCESTATUS", OracleDbType.Varchar2, sourse.providerSourceStatus, ParameterDirection.Input);
                 OracleParameter P_SREGIONOFAUTHORITY = new OracleParameter("P_SREGIONOFAUTHORITY", OracleDbType.Varchar2, sourse.regionOfAuthority, ParameterDirection.Input);
                 OracleParameter P_SSUBSCRIPTIONCATEGORY = new OracleParameter("P_SSUBSCRIPTIONCATEGORY", OracleDbType.Varchar2, sourse.subscriptionCategory, ParameterDirection.Input);
-                OracleParameter P_SPROVIDERCODE = new OracleParameter("P_SPROVIDERCODE", OracleDbType.Varchar2, sourse.provider == null ? "": sourse.provider.code, ParameterDirection.Input);
+                OracleParameter P_SPROVIDERCODE = new OracleParameter("P_SPROVIDERCODE", OracleDbType.Varchar2, sourse.provider == null ? "" : sourse.provider.code, ParameterDirection.Input);
                 OracleParameter P_SPROVIDERIDENTIFIER = new OracleParameter("P_SPROVIDERIDENTIFIER", OracleDbType.Varchar2, sourse.provider == null ? "" : sourse.provider.identifier, ParameterDirection.Input);
-                OracleParameter P_SPROVIDERMASTER = new OracleParameter("P_SPROVIDERMASTER", OracleDbType.Varchar2, sourse.provider == null ? "0" : sourse.provider.master == "true" ? "1": "0", ParameterDirection.Input);
-                OracleParameter P_SPROVIDERNAME = new OracleParameter("P_SPROVIDERNAME", OracleDbType.Varchar2, sourse.provider == null ? "": sourse.provider.name , ParameterDirection.Input);
+                OracleParameter P_SPROVIDERMASTER = new OracleParameter("P_SPROVIDERMASTER", OracleDbType.Varchar2, sourse.provider == null ? "0" : sourse.provider.master == "true" ? "1" : "0", ParameterDirection.Input);
+                OracleParameter P_SPROVIDERNAME = new OracleParameter("P_SPROVIDERNAME", OracleDbType.Varchar2, sourse.provider == null ? "" : sourse.provider.name, ParameterDirection.Input);
                 bool isObjectCategory = sourse.type == null ? false : sourse.type.category == null ? false : true;
                 OracleParameter P_STYPECATEGORYDESCRIPTION = new OracleParameter("P_STYPECATEGORYDESCRIPTION", OracleDbType.Varchar2, (isObjectCategory ? sourse.type.category.description : ""), ParameterDirection.Input);
                 OracleParameter P_STYPECATEGORYIDENTIFIER = new OracleParameter("P_STYPECATEGORYIDENTIFIER", OracleDbType.Varchar2, (isObjectCategory ? sourse.type.category.identifier : ""), ParameterDirection.Input);
-                OracleParameter P_STYPECATEGORYNAME = new OracleParameter("P_STYPECATEGORYNAME", OracleDbType.Varchar2, (isObjectCategory ? sourse.type.category.name : "") , ParameterDirection.Input);
+                OracleParameter P_STYPECATEGORYNAME = new OracleParameter("P_STYPECATEGORYNAME", OracleDbType.Varchar2, (isObjectCategory ? sourse.type.category.name : ""), ParameterDirection.Input);
                 bool isObjectType = sourse.type == null ? false : true;
                 OracleParameter P_STYPEIDENTIFIER = new OracleParameter("P_STYPEIDENTIFIER", OracleDbType.Varchar2, (isObjectType ? sourse.type.identifier : ""), ParameterDirection.Input);
                 OracleParameter P_STYPENAME = new OracleParameter("P_STYPENAME", OracleDbType.Varchar2, (isObjectType ? sourse.type.name : ""), ParameterDirection.Input);
@@ -368,6 +368,39 @@ namespace protecta.WC1.api.Repository
             {
                 throw ex;
             }
+        }
+
+        internal ResponseDTO deshabilitarResultado(string sCaseId)
+        {
+            ResponseDTO respo = new ResponseDTO();
+            try
+            {
+                OracleParameter P_SCASEID = new OracleParameter("P_SCASEID", OracleDbType.NVarchar2, sCaseId, System.Data.ParameterDirection.Input);
+                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
+                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
+                P_SMESSAGE.Size = 4000;
+                OracleParameter[] parameters = new OracleParameter[] { P_SCASEID, P_NCODE, P_SMESSAGE };
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_DESHABILITARCOINCIDENCIAS(:P_SCASEID, :P_NCODE, :P_SMESSAGE);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+
+                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
+                respo.sMessage = P_SMESSAGE.Value.ToString();
+                this.context.Database.CloseConnection();
+
+                this.context.Database.CloseConnection();
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+
+            return respo;
         }
 
         internal ResponseDTO SaveProfile(ResponseProfileDTO item, string resulId, int id)
@@ -427,7 +460,7 @@ namespace protecta.WC1.api.Repository
             }
         }
 
-        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id,string caseSystemId , string caseId)
+        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId)
         {
             ResponseDTO response = new ResponseDTO();
             for (int i = 0; i < responseWc1.categories.Count; i++)
@@ -538,7 +571,7 @@ namespace protecta.WC1.api.Repository
                 OracleDataReader odr = ((OracleRefCursor)P_LISTCASEID.Value).GetDataReader();
                 while (odr.Read())
                 {
-                    ObjCaseDTO item = new ObjCaseDTO();                    
+                    ObjCaseDTO item = new ObjCaseDTO();
                     item.SCaseId = odr["SCASEID"].ToString();
                     item.SCaseSystemId = odr["SCASESYSTEMID"].ToString();
                     List.Add(item);

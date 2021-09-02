@@ -386,9 +386,9 @@ namespace protecta.WC1.api.Services
                         else
                             response.isOtherList = true;
                         if (item.idDocNumber != "")
-                            if(!response.isIdNumber)
+                            if (!response.isIdNumber)
                                 response.isIdNumber = items[i].identityDocuments.Exists(t => t.number == item.idDocNumber);
-                        
+
                     }
                 }
                 catch (Exception ex)
@@ -458,28 +458,35 @@ namespace protecta.WC1.api.Services
                     items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
                     items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
                     System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
-                    _response.data = items.Select(t => string.Join(",", t.categories.Distinct())).ToList();
-                    List<string> _categorys = _response.data.FindAll(t => t.Contains(","));
-                    _response.data = _response.data.FindAll(t => !t.Contains(","));
-                    for (int i = 0; i < _categorys.Count; i++)
+                    if (items.Count > 0)
                     {
-                        _response.data.AddRange(_categorys[i].Split(",").ToList());
-                    }
-                    _response.data = _response.data.Distinct().ToList();
-                    for (int i = 0; i < items.Count; i++)
-                    {
-                        _response.sStatus = isCreate ? "OK" : "UPDATE";
-                        try
+                        if (!isCreate)
                         {
-                            items[i].categories = items[i].categories.Distinct().ToList();
-                            response = this.SaveResult(items[i], caseSystemId);
-                            response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId);
-                            _response.sMessage = response.sMessage;
+                            _repository.deshabilitarResultado(Case[0].SCaseId);
                         }
-                        catch (Exception ex)
+                        _response.data = items.Select(t => string.Join(",", t.categories.Distinct())).ToList();
+                        List<string> _categorys = _response.data.FindAll(t => t.Contains(","));
+                        _response.data = _response.data.FindAll(t => !t.Contains(","));
+                        for (int i = 0; i < _categorys.Count; i++)
                         {
-                            _response.sMessage = response.sMessage;
-                            System.Console.WriteLine("error : " + i + " - " + items[i].primaryName + " - " + ex.Message);
+                            _response.data.AddRange(_categorys[i].Split(",").ToList());
+                        }
+                        _response.data = _response.data.Distinct().ToList();
+                        for (int i = 0; i < items.Count; i++)
+                        {
+                            _response.sStatus = isCreate ? "OK" : "UPDATE";
+                            try
+                            {
+                                items[i].categories = items[i].categories.Distinct().ToList();
+                                response = this.SaveResult(items[i], caseSystemId);
+                                response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId);
+                                _response.sMessage = response.sMessage;
+                            }
+                            catch (Exception ex)
+                            {
+                                _response.sMessage = response.sMessage;
+                                System.Console.WriteLine("error : " + i + " - " + items[i].primaryName + " - " + ex.Message);
+                            }
                         }
                     }
                 }
