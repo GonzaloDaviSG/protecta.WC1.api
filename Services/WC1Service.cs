@@ -418,7 +418,7 @@ namespace protecta.WC1.api.Services
             }
             return value;
         }
-        internal async Task<ResponseDTO> alertsProcess(ResquestAlert item)
+        public async Task<ResponseDTO> alertsProcess(ResquestAlert item)
         {
             List<ObjCaseDTO> Case = new List<ObjCaseDTO>();
             ResponseDTO _response = new ResponseDTO();
@@ -472,14 +472,15 @@ namespace protecta.WC1.api.Services
                             _response.data.AddRange(_categorys[i].Split(",").ToList());
                         }
                         _response.data = _response.data.Distinct().ToList();
+                        
                         for (int i = 0; i < items.Count; i++)
                         {
                             _response.sStatus = isCreate ? "OK" : "UPDATE";
                             try
                             {
                                 items[i].categories = items[i].categories.Distinct().ToList();
-                                response = this.SaveResult(items[i], caseSystemId);
-                                response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId);
+                                response =  this.SaveResult(items[i], caseSystemId);
+                                response =  _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId);
                                 _response.sMessage = response.sMessage;
                             }
                             catch (Exception ex)

@@ -5,6 +5,7 @@ using protecta.WC1.api.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace protecta.WC1.api.Controllers
@@ -68,8 +69,11 @@ namespace protecta.WC1.api.Controllers
         public async Task<ResponseDTO> alertsProcess(ResquestAlert item)
         {
             ResponseDTO response = new ResponseDTO();
-            response = await new WC1Service().alertsProcess(item);
-            return response;
+            Task<ResponseDTO> taskA =  Task.Run(() => {
+                return new WC1Service().alertsProcess(item);
+            });
+            taskA.Wait();
+            return taskA.Result;
         }
         [Route("getCoincidenceNotPep")]
         [HttpPost]

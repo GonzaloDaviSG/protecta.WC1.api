@@ -462,47 +462,87 @@ namespace protecta.WC1.api.Repository
 
         internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId)
         {
+
             ResponseDTO response = new ResponseDTO();
+            List<Dictionary<string, dynamic>> documents = new List<Dictionary<string, dynamic>>();
             for (int i = 0; i < responseWc1.categories.Count; i++)
             {
-                try
+                if (responseWc1.identityDocuments.Count > 0)
                 {
-                    int category = responseWc1.categories[i] == "PEP" ? 2 : 1;
-                    int valorPorcentaje = responseWc1.matchStrength == "WEAK" ? 25 : responseWc1.matchStrength == "MEDIUM" ? 50 : responseWc1.matchStrength == "STRONG" ? 75 : responseWc1.matchStrength == "EXACT" ? 100 : 0;
-                    OracleParameter P_NIDALERTA = new OracleParameter("P_NIDALERTA", OracleDbType.Int32, int.Parse(item.alertId), System.Data.ParameterDirection.Input);
-                    OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.Int32, int.Parse(item.periodId), System.Data.ParameterDirection.Input);
-                    OracleParameter P_NIDRESULTADO = new OracleParameter("P_NIDRESULTADO", OracleDbType.Int32, id, System.Data.ParameterDirection.Input);
-                    //OracleParameter P_SMACHTSTRENGTH = new OracleParameter("P_SMACHTSTRENGTH", OracleDbType.NVarchar2, responseWc1.matchStrength, System.Data.ParameterDirection.Input);
-                    OracleParameter P_NMACHTSTRENGTHVALUE = new OracleParameter("P_NMACHTSTRENGTHVALUE", OracleDbType.Int32, valorPorcentaje, System.Data.ParameterDirection.Input);
-                    OracleParameter P_NIDTIPOLISTA = new OracleParameter("P_NIDTIPOLISTA", OracleDbType.Int32, category, System.Data.ParameterDirection.Input);
-                    OracleParameter P_SORIGEN = new OracleParameter("P_SORIGEN", OracleDbType.NVarchar2, responseWc1.categories[i], System.Data.ParameterDirection.Input);
-                    OracleParameter P_SMATCHEDTERM = new OracleParameter("P_SMATCHEDTERM", OracleDbType.NVarchar2, responseWc1.matchedTerm, System.Data.ParameterDirection.Input);
-                    OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int32, item.tipoCargaId, System.Data.ParameterDirection.Input);
-                    OracleParameter P_SNOMBREBUSQUEDA = new OracleParameter("P_SNOMBREBUSQUEDA", OracleDbType.NVarchar2, responseWc1.submittedTerm, System.Data.ParameterDirection.Input);
+                    Dictionary<string, dynamic> doc;
+                    for (int j = 0; j < responseWc1.identityDocuments.Count; j++)
+                    {
+                        doc = new Dictionary<string, dynamic>();
+                        doc["number"] = responseWc1.identityDocuments[j].number;
+                        doc["type"] = responseWc1.identityDocuments[j].locationType.type.Contains("DNI") ? "DNI" : responseWc1.identityDocuments[j].locationType.type.Contains("RUC") ? "RUC" : "";
+                        documents.Add(doc);
+                    }
+                }
+                else
+                {
+                    Dictionary<string, dynamic> doc = new Dictionary<string, dynamic>();
+                    doc["number"] = "";
+                    doc["type"] = "";
+                    documents.Add(doc);
+                }
+                String[] palabras = responseWc1.matchedTerm.Split(' ');
+                for (int j = 0; j < documents.Count; j++)
+                {
+                    try
+                    {
+                        responseWc1.matchedTerm = responseWc1.matchedTerm.Replace(',', ' ');
+                        String[] word = responseWc1.matchedTerm.Split(' ');
+                        List<String> nombre = new List<String>();
+                        List<String> apellidos = new List<String>();
+                        for (var x = 0; x < word.Length; x++)
+                        {
+                            if (word[x] == word[x].ToUpper())
+                                apellidos.Add(word[x]);
+                            else
+                                nombre.Add(word[x]);
+                        }
+                        responseWc1.matchedTerm = String.Join(" ", apellidos) + ' ' + String.Join(" ", nombre);
+                        int category = responseWc1.categories[i] == "PEP" ? 2 : 1;
+                        int valorPorcentaje = responseWc1.matchStrength == "WEAK" ? 25 : responseWc1.matchStrength == "MEDIUM" ? 50 : responseWc1.matchStrength == "STRONG" ? 75 : responseWc1.matchStrength == "EXACT" ? 100 : 0;
+                        OracleParameter P_NIDALERTA = new OracleParameter("P_NIDALERTA", OracleDbType.Int32, int.Parse(item.alertId), System.Data.ParameterDirection.Input);
+                        OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.Int32, int.Parse(item.periodId), System.Data.ParameterDirection.Input);
+                        OracleParameter P_NIDRESULTADO = new OracleParameter("P_NIDRESULTADO", OracleDbType.Int32, id, System.Data.ParameterDirection.Input);
+                        //OracleParameter P_SMACHTSTRENGTH = new OracleParameter("P_SMACHTSTRENGTH", OracleDbType.NVarchar2, responseWc1.matchStrength, System.Data.ParameterDirection.Input);
+                        OracleParameter P_NMACHTSTRENGTHVALUE = new OracleParameter("P_NMACHTSTRENGTHVALUE", OracleDbType.Int32, valorPorcentaje, System.Data.ParameterDirection.Input);
+                        OracleParameter P_NIDTIPOLISTA = new OracleParameter("P_NIDTIPOLISTA", OracleDbType.Int32, category, System.Data.ParameterDirection.Input);
+                        OracleParameter P_SORIGEN = new OracleParameter("P_SORIGEN", OracleDbType.NVarchar2, responseWc1.categories[i], System.Data.ParameterDirection.Input);
 
-                    OracleParameter P_SCASESYSTEMID = new OracleParameter("P_SCASESYSTEMID", OracleDbType.NVarchar2, caseSystemId, System.Data.ParameterDirection.Input);
-                    OracleParameter P_SCASEID = new OracleParameter("P_SCASEID", OracleDbType.NVarchar2, caseId, System.Data.ParameterDirection.Input);
+                        OracleParameter P_SMATCHEDTERM = new OracleParameter("P_SMATCHEDTERM", OracleDbType.NVarchar2, responseWc1.matchedTerm.ToUpper(), System.Data.ParameterDirection.Input);
+                        OracleParameter P_SNUM_DOCUMENT = new OracleParameter("P_SNUM_DOCUMENT", OracleDbType.NVarchar2, documents[j]["number"], System.Data.ParameterDirection.Input);
+                        OracleParameter P_STIPO_DOCUMENT = new OracleParameter("P_STIPO_DOCUMENT", OracleDbType.NVarchar2, documents[j]["type"], System.Data.ParameterDirection.Input);
 
-                    OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
-                    OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
-                    OracleParameter[] parameters = new OracleParameter[] { P_NIDALERTA, P_NPERIODO_PROCESO, P_NIDRESULTADO, P_NMACHTSTRENGTHVALUE, P_NIDTIPOLISTA,
-                        P_SORIGEN,P_SMATCHEDTERM,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID, P_NCODE, P_SMESSAGE };
-                    var query = @"
+                        OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int32, item.tipoCargaId, System.Data.ParameterDirection.Input);
+                        OracleParameter P_SNOMBREBUSQUEDA = new OracleParameter("P_SNOMBREBUSQUEDA", OracleDbType.NVarchar2, responseWc1.submittedTerm, System.Data.ParameterDirection.Input);
+
+                        OracleParameter P_SCASESYSTEMID = new OracleParameter("P_SCASESYSTEMID", OracleDbType.NVarchar2, caseSystemId, System.Data.ParameterDirection.Input);
+                        OracleParameter P_SCASEID = new OracleParameter("P_SCASEID", OracleDbType.NVarchar2, caseId, System.Data.ParameterDirection.Input);
+
+                        OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
+                        OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
+                        OracleParameter[] parameters = new OracleParameter[] { P_NIDALERTA, P_NPERIODO_PROCESO, P_NIDRESULTADO, P_NMACHTSTRENGTHVALUE, P_NIDTIPOLISTA,
+                        P_SORIGEN,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID, P_NCODE, P_SMESSAGE };
+                        var query = @"
                     BEGIN
                         LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_RESULT_COINCIDENCIA(:P_NIDALERTA, :P_NPERIODO_PROCESO, :P_NIDRESULTADO,:P_NMACHTSTRENGTHVALUE, :P_NIDTIPOLISTA,
-                        :P_SORIGEN,:P_SMATCHEDTERM,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_NCODE, :P_SMESSAGE);
+                        :P_SORIGEN,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_NCODE, :P_SMESSAGE);
                     END;
                     ";
-                    this.context.Database.OpenConnection();
-                    this.context.Database.ExecuteSqlCommand(query, parameters);
+                        this.context.Database.OpenConnection();
+                        this.context.Database.ExecuteSqlCommand(query, parameters);
 
-                    response.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
-                    response.sMessage = P_SMESSAGE.Value.ToString();
-                    this.context.Database.CloseConnection();
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
+                        response.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
+                        response.sMessage = P_SMESSAGE.Value.ToString();
+                        this.context.Database.CloseConnection();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
                 }
             }
             return response;
