@@ -33,7 +33,7 @@ namespace protecta.WC1.api.Services
             objDefault.customFields = new List<Properties>();
             objDefault.secondaryFields = new List<Properties>();
             objDefault.nameTransposition = true;
-            objDefault.secondaryFields.Add(new Properties() { typeId = "SFCT_3", value = "PER" });
+            objDefault.secondaryFields.Add(new Properties() { typeId = "SFCT_5", value = "PER" });
         }
 
         public List<ResponseWc1> Create(RequestWc1 item)
@@ -305,7 +305,11 @@ namespace protecta.WC1.api.Services
                             _repository.SaveWebLinks(profile.weblinks[j], response.nId);
                     if (profile.details.Count > 0)
                         for (int j = 0; j < profile.details.Count; j++)
+                        {
                             _repository.SaveDetail(profile.details[j], response.nId);
+                            if (profile.details[j].detailType == "BIOGRAPHY")
+                                response.sMessage = profile.details[j].text;
+                        }
                 }
             }
             catch (Exception ex)
@@ -456,7 +460,8 @@ namespace protecta.WC1.api.Services
                 try
                 {
                     items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
-                    items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
+                    items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
+                    //items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5")).ToList();
                     System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
                     if (items.Count > 0)
                     {
@@ -472,15 +477,17 @@ namespace protecta.WC1.api.Services
                             _response.data.AddRange(_categorys[i].Split(",").ToList());
                         }
                         _response.data = _response.data.Distinct().ToList();
-                        
+
                         for (int i = 0; i < items.Count; i++)
                         {
                             _response.sStatus = isCreate ? "OK" : "UPDATE";
                             try
                             {
+                                string biography = "";
                                 items[i].categories = items[i].categories.Distinct().ToList();
-                                response =  this.SaveResult(items[i], caseSystemId);
-                                response =  _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId);
+                                response = this.SaveResult(items[i], caseSystemId);
+                                biography = response.sMessage;
+                                response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId, biography);
                                 _response.sMessage = response.sMessage;
                             }
                             catch (Exception ex)

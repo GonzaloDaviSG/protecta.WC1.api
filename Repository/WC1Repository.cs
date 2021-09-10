@@ -460,13 +460,13 @@ namespace protecta.WC1.api.Repository
             }
         }
 
-        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId)
+        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId, string biography)
         {
 
             ResponseDTO response = new ResponseDTO();
-            List<Dictionary<string, dynamic>> documents = new List<Dictionary<string, dynamic>>();
             for (int i = 0; i < responseWc1.categories.Count; i++)
             {
+                List<Dictionary<string, dynamic>> documents = new List<Dictionary<string, dynamic>>();
                 if (responseWc1.identityDocuments.Count > 0)
                 {
                     Dictionary<string, dynamic> doc;
@@ -481,8 +481,8 @@ namespace protecta.WC1.api.Repository
                 else
                 {
                     Dictionary<string, dynamic> doc = new Dictionary<string, dynamic>();
-                    doc["number"] = "";
-                    doc["type"] = "";
+                    doc["number"] = "0";
+                    doc["type"] = "XX";
                     documents.Add(doc);
                 }
                 String[] palabras = responseWc1.matchedTerm.Split(' ');
@@ -515,6 +515,7 @@ namespace protecta.WC1.api.Repository
                         OracleParameter P_SMATCHEDTERM = new OracleParameter("P_SMATCHEDTERM", OracleDbType.NVarchar2, responseWc1.matchedTerm.ToUpper(), System.Data.ParameterDirection.Input);
                         OracleParameter P_SNUM_DOCUMENT = new OracleParameter("P_SNUM_DOCUMENT", OracleDbType.NVarchar2, documents[j]["number"], System.Data.ParameterDirection.Input);
                         OracleParameter P_STIPO_DOCUMENT = new OracleParameter("P_STIPO_DOCUMENT", OracleDbType.NVarchar2, documents[j]["type"], System.Data.ParameterDirection.Input);
+                        OracleParameter P_SCARGO_PEP_EXTERNO = new OracleParameter("P_SCARGO_PEP_EXTERNO", OracleDbType.NVarchar2, biography, System.Data.ParameterDirection.Input);
 
                         OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int32, item.tipoCargaId, System.Data.ParameterDirection.Input);
                         OracleParameter P_SNOMBREBUSQUEDA = new OracleParameter("P_SNOMBREBUSQUEDA", OracleDbType.NVarchar2, responseWc1.submittedTerm, System.Data.ParameterDirection.Input);
@@ -525,11 +526,11 @@ namespace protecta.WC1.api.Repository
                         OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                         OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
                         OracleParameter[] parameters = new OracleParameter[] { P_NIDALERTA, P_NPERIODO_PROCESO, P_NIDRESULTADO, P_NMACHTSTRENGTHVALUE, P_NIDTIPOLISTA,
-                        P_SORIGEN,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID, P_NCODE, P_SMESSAGE };
+                        P_SORIGEN,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_SCARGO_PEP_EXTERNO,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID, P_NCODE, P_SMESSAGE };
                         var query = @"
                     BEGIN
                         LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_RESULT_COINCIDENCIA(:P_NIDALERTA, :P_NPERIODO_PROCESO, :P_NIDRESULTADO,:P_NMACHTSTRENGTHVALUE, :P_NIDTIPOLISTA,
-                        :P_SORIGEN,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_NCODE, :P_SMESSAGE);
+                        :P_SORIGEN,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_SCARGO_PEP_EXTERNO,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_NCODE, :P_SMESSAGE);
                     END;
                     ";
                         this.context.Database.OpenConnection();
