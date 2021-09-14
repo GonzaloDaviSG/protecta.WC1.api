@@ -5,6 +5,7 @@ using protecta.WC1.api.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace protecta.WC1.api.Controllers
@@ -68,8 +69,28 @@ namespace protecta.WC1.api.Controllers
         public async Task<ResponseDTO> alertsProcess(ResquestAlert item)
         {
             ResponseDTO response = new ResponseDTO();
-            response = await new WC1Service().alertsProcess(item);
-            return response;
+            Task<ResponseDTO> taskA = null;
+            try
+            {
+                taskA = Task.Run(() =>
+                {
+                    return new WC1Service().alertsProcess(item);
+                });
+                taskA.Wait();
+                
+            }
+            catch (Exception ex)
+            {
+                taskA = Task.Run(() =>
+                {
+                    response.sMessage = "Comuniquese con el Administrador";
+                    response.sStatus = "ERROR";
+                    response.nCode = 1;
+                    return response;
+                });
+            }
+            return taskA.Result;
+
         }
         [Route("getCoincidenceNotPep")]
         [HttpPost]
