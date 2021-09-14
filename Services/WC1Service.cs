@@ -496,6 +496,7 @@ namespace protecta.WC1.api.Services
                                 System.Console.WriteLine("error : " + i + " - " + items[i].primaryName + " - " + ex.Message);
                             }
                         }
+                        _repository.ins_trat_cliente();
                     }
                 }
                 catch (Exception ex)
