@@ -25,7 +25,7 @@ namespace protecta.WC1.api.Services
         RequestWc1 objDefault;
         public WC1Service()
         {
-            _repository = new WC1Repository();
+            //_repository = new WC1Repository();
             objDefault = new RequestWc1();
             objDefault.providerTypes = new List<string>() { "WATCHLIST" };
             objDefault.entityType = "INDIVIDUAL";
