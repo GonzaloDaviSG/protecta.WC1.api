@@ -25,7 +25,7 @@ namespace protecta.WC1.api.Services
         RequestWc1 objDefault;
         public WC1Service()
         {
-            //_repository = new WC1Repository();
+            _repository = new WC1Repository();
             objDefault = new RequestWc1();
             objDefault.providerTypes = new List<string>() { "WATCHLIST" };
             objDefault.entityType = "INDIVIDUAL";
@@ -70,6 +70,11 @@ namespace protecta.WC1.api.Services
             string response = this.getReques(sMethod);
             list = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
             return list;
+        }
+
+        internal Task<ListResponseDTO> setClienteTratamiento(ResquestAlert item)
+        {
+            throw new NotImplementedException();
         }
 
         internal object Resolution(RequestWC1ResolutionDTO item)
@@ -496,7 +501,8 @@ namespace protecta.WC1.api.Services
                                 System.Console.WriteLine("error : " + i + " - " + items[i].primaryName + " - " + ex.Message);
                             }
                         }
-                        _repository.ins_trat_cliente();
+                        if(item.tipoCargaId == "2")
+                            response = _repository.ins_tratamiento_cliente(item);
                     }
                 }
                 catch (Exception ex)

@@ -22,5 +22,9 @@ namespace protecta.WC1.api.DTO
         public string alertId { get; set; }
         [DataMember]
         public string tipoCargaId { get; set; }
+        [DataMember]
+        public string sClient { get; set; }
+        [DataMember]
+        public string nIdUsuario { get; set; }
     }
 }

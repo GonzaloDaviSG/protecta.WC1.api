@@ -369,6 +369,7 @@ namespace protecta.WC1.api.Repository
                 throw ex;
             }
         }
+        
 
         internal ResponseDTO deshabilitarResultado(string sCaseId)
         {
@@ -584,8 +585,6 @@ namespace protecta.WC1.api.Repository
                 respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
                 respo.sMessage = P_SMESSAGE.Value.ToString();
                 this.context.Database.CloseConnection();
-
-                this.context.Database.CloseConnection();
             }
             catch (Exception ex)
             {
@@ -620,6 +619,42 @@ namespace protecta.WC1.api.Repository
                 odr.Close();
                 this.context.Database.CloseConnection();
                 return List;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        internal ResponseDTO ins_tratamiento_cliente(ResquestAlert item)
+        {
+            ResponseDTO respo = new ResponseDTO();
+            try
+            {
+                //matchedNameType
+                OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.Int32, item.periodId, ParameterDirection.Input);
+                OracleParameter P_NIDALERTA = new OracleParameter("P_NIDALERTA", OracleDbType.Int16, 2, ParameterDirection.Input);
+                OracleParameter P_NIDGRUPOSENAL = new OracleParameter("P_NIDGRUPOSENAL", OracleDbType.Int16, 1, ParameterDirection.Input);
+                OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int16, item.tipoCargaId, ParameterDirection.Input);
+                OracleParameter P_SCLIENT = new OracleParameter("P_SCLIENT", OracleDbType.Varchar2, item.sClient, ParameterDirection.Input);
+                OracleParameter P_NIDUSUARIO_MODIFICA = new OracleParameter("P_NIDUSUARIO_MODIFICA", OracleDbType.Int32, item.nIdUsuario, ParameterDirection.Input);
+                OracleParameter P_NIDPROVEEDOR = new OracleParameter("P_NIDPROVEEDOR", OracleDbType.Int16, 4, ParameterDirection.Input);
+                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Varchar2, ParameterDirection.Output);
+                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, ParameterDirection.Output);
+                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NIDALERTA , P_NIDGRUPOSENAL, P_NTIPOCARGA, P_SCLIENT
+                , P_NIDUSUARIO_MODIFICA, P_NIDPROVEEDOR, P_NCODE, P_SMESSAGE};
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_GET_EXIST_CASE(:P_NPERIODO_PROCESO, :P_NIDALERTA , :P_NIDGRUPOSENAL, :P_NTIPOCARGA, :P_SCLIENT
+                        , :P_NIDUSUARIO_MODIFICA, :P_NIDPROVEEDOR, :P_NCODE, :P_SMESSAGE);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
+                respo.sMessage = P_SMESSAGE.Value.ToString();
+                this.context.Database.CloseConnection();
+                return respo;
             }
             catch (Exception ex)
             {

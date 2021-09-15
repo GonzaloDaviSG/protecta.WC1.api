@@ -92,6 +92,7 @@ namespace protecta.WC1.api.Controllers
             return taskA.Result;
 
         }
+        
         [Route("getCoincidenceNotPep")]
         [HttpPost]
         public async Task<ListResponseDTO> getCoincidenceNotPep(ResquestAlert item)
