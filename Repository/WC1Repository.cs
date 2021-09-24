@@ -461,6 +461,44 @@ namespace protecta.WC1.api.Repository
             }
         }
 
+        internal ResponseDTO spcarga_coincidencias(ResquestAlert item)
+        {
+            ResponseDTO respo = new ResponseDTO();
+            try
+            {
+                OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.Int32, item.periodId, ParameterDirection.Input);
+                OracleParameter P_NIDREGIMEN = new OracleParameter("P_NIDREGIMEN", OracleDbType.Int32, 1, ParameterDirection.Input);
+                OracleParameter P_NIDALERTA = new OracleParameter("P_NIDALERTA", OracleDbType.Int32, item.alertId, ParameterDirection.Input);
+                OracleParameter P_NIDGRUPOSENAL = new OracleParameter("P_NIDGRUPOSENAL", OracleDbType.Int32, 1, ParameterDirection.Input);
+                OracleParameter P_CLIENT = new OracleParameter("P_CLIENT", OracleDbType.Varchar2, item.sClient, ParameterDirection.Input);
+                OracleParameter P_NIDUSUARIO = new OracleParameter("P_NIDUSUARIO", OracleDbType.Int32, item.nIdUsuario, ParameterDirection.Input);
+                OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int32, item.tipoCargaId, ParameterDirection.Input);               
+
+                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
+                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
+
+                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NIDREGIMEN, P_NIDALERTA, P_NIDGRUPOSENAL, P_CLIENT, P_NIDUSUARIO, P_NTIPOCARGA, P_NCODE,P_SMESSAGE};
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_COINCIDENCIA_PROFILE(:P_NPERIODO_PROCESO, :P_NIDREGIMEN, :P_NIDALERTA, :P_NIDGRUPOSENAL, :P_CLIENT, 
+                        :P_NIDUSUARIO, :P_NTIPOCARGA, :P_NCODE, :P_SMESSAGE);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+
+                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
+                respo.sMessage = P_SMESSAGE.Value.ToString();
+                this.context.Database.CloseConnection();
+                return respo;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
         internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId, string biography)
         {
 
@@ -491,18 +529,6 @@ namespace protecta.WC1.api.Repository
                 {
                     try
                     {
-                        responseWc1.matchedTerm = responseWc1.matchedTerm.Replace(',', ' ');
-                        String[] word = responseWc1.matchedTerm.Split(' ');
-                        List<String> nombre = new List<String>();
-                        List<String> apellidos = new List<String>();
-                        for (var x = 0; x < word.Length; x++)
-                        {
-                            if (word[x] == word[x].ToUpper())
-                                apellidos.Add(word[x]);
-                            else
-                                nombre.Add(word[x]);
-                        }
-                        responseWc1.matchedTerm = String.Join(" ", apellidos) + ' ' + String.Join(" ", nombre);
                         int category = responseWc1.categories[i] == "PEP" ? 2 : 1;
                         int valorPorcentaje = responseWc1.matchStrength == "WEAK" ? 25 : responseWc1.matchStrength == "MEDIUM" ? 50 : responseWc1.matchStrength == "STRONG" ? 75 : responseWc1.matchStrength == "EXACT" ? 100 : 0;
                         OracleParameter P_NIDALERTA = new OracleParameter("P_NIDALERTA", OracleDbType.Int32, int.Parse(item.alertId), System.Data.ParameterDirection.Input);
@@ -513,7 +539,8 @@ namespace protecta.WC1.api.Repository
                         OracleParameter P_NIDTIPOLISTA = new OracleParameter("P_NIDTIPOLISTA", OracleDbType.Int32, category, System.Data.ParameterDirection.Input);
                         OracleParameter P_SORIGEN = new OracleParameter("P_SORIGEN", OracleDbType.NVarchar2, responseWc1.categories[i], System.Data.ParameterDirection.Input);
 
-                        OracleParameter P_SMATCHEDTERM = new OracleParameter("P_SMATCHEDTERM", OracleDbType.NVarchar2, responseWc1.matchedTerm.ToUpper(), System.Data.ParameterDirection.Input);
+                        OracleParameter P_SNOM_COMPLETO = new OracleParameter("P_SNOM_COMPLETO", OracleDbType.NVarchar2, responseWc1.primaryName.Trim().ToUpper(), System.Data.ParameterDirection.Input);
+                        OracleParameter P_SMATCHEDTERM = new OracleParameter("P_SMATCHEDTERM", OracleDbType.NVarchar2, responseWc1.matchedTerm.Trim().ToUpper(), System.Data.ParameterDirection.Input);
                         OracleParameter P_SNUM_DOCUMENT = new OracleParameter("P_SNUM_DOCUMENT", OracleDbType.NVarchar2, documents[j]["number"], System.Data.ParameterDirection.Input);
                         OracleParameter P_STIPO_DOCUMENT = new OracleParameter("P_STIPO_DOCUMENT", OracleDbType.NVarchar2, documents[j]["type"], System.Data.ParameterDirection.Input);
                         OracleParameter P_SCARGO_PEP_EXTERNO = new OracleParameter("P_SCARGO_PEP_EXTERNO", OracleDbType.NVarchar2, biography, System.Data.ParameterDirection.Input);
@@ -527,11 +554,11 @@ namespace protecta.WC1.api.Repository
                         OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                         OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
                         OracleParameter[] parameters = new OracleParameter[] { P_NIDALERTA, P_NPERIODO_PROCESO, P_NIDRESULTADO, P_NMACHTSTRENGTHVALUE, P_NIDTIPOLISTA,
-                        P_SORIGEN,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_SCARGO_PEP_EXTERNO,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID, P_NCODE, P_SMESSAGE };
+                        P_SORIGEN,P_SNOM_COMPLETO,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_SCARGO_PEP_EXTERNO,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID, P_NCODE, P_SMESSAGE };
                         var query = @"
                     BEGIN
                         LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_RESULT_COINCIDENCIA(:P_NIDALERTA, :P_NPERIODO_PROCESO, :P_NIDRESULTADO,:P_NMACHTSTRENGTHVALUE, :P_NIDTIPOLISTA,
-                        :P_SORIGEN,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_SCARGO_PEP_EXTERNO,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_NCODE, :P_SMESSAGE);
+                        :P_SORIGEN,:P_SNOM_COMPLETO,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_SCARGO_PEP_EXTERNO,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_NCODE, :P_SMESSAGE);
                     END;
                     ";
                         this.context.Database.OpenConnection();

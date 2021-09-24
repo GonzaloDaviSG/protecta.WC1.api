@@ -445,64 +445,101 @@ namespace protecta.WC1.api.Services
                 if (Case.Count == 0)
                 {
                     result = createCase(objDefault);
-                    dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
-                    objResult = obj.results.ToString();
-                    caseSystemId = obj.caseSystemId.ToString();
-                    caseId = obj.caseId.ToString();
-                    if (caseId != "")
-                        isCreate = true;
+                    if (!String.IsNullOrWhiteSpace(result))
+                    {
+                        dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                        objResult = obj.results.ToString();
+                        caseSystemId = obj.caseSystemId.ToString();
+                        caseId = obj.caseId.ToString();
+                        if (caseId != "")
+                            isCreate = true;
+                    }
                 }
                 else
                 {
                     result = getResults(Case[0].SCaseSystemId);
-                    dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
-                    objResult = obj.ToString();
-                    caseSystemId = Case[0].SCaseSystemId;
-                    caseId = Case[0].SCaseId;
+                    if (!String.IsNullOrWhiteSpace(result))
+                    {
+                        dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                        objResult = obj.ToString();
+                        caseSystemId = Case[0].SCaseSystemId;
+                        caseId = Case[0].SCaseId;
+                    }
                 }
                 List<ResponseWc1> items = new List<ResponseWc1>();
 
                 try
                 {
                     items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
-                    items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
-                    //items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5")).ToList();
-                    System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
-                    if (items.Count > 0)
+                    if (items != null && items.Count > 0)
                     {
-                        if (!isCreate)
-                        {
-                            _repository.deshabilitarResultado(Case[0].SCaseId);
-                        }
-                        _response.data = items.Select(t => string.Join(",", t.categories.Distinct())).ToList();
-                        List<string> _categorys = _response.data.FindAll(t => t.Contains(","));
-                        _response.data = _response.data.FindAll(t => !t.Contains(","));
-                        for (int i = 0; i < _categorys.Count; i++)
-                        {
-                            _response.data.AddRange(_categorys[i].Split(",").ToList());
-                        }
-                        _response.data = _response.data.Distinct().ToList();
+                        items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
+                        //List<Dictionary<string, dynamic>> _items = new List<Dictionary<string, dynamic>>();
+                        //Dictionary<string, dynamic> _item;
+                        //for (int k = 0; k < items.Count; k++)
+                        //{
+                        //    _item = new Dictionary<string, dynamic>();
+                        //    _item["name"] = items[k].matchedTerm;
+                        //    _item["numdocument"] = items[k].matchedTerm;
+                        //    List<Dictionary<string, dynamic>> documents = new List<Dictionary<string, dynamic>>();
+                        //    if (items[k].identityDocuments.Count > 0)
+                        //    {
+                        //        Dictionary<string, dynamic> doc;
+                        //        for (int j = 0; j < items[k].identityDocuments.Count; j++)
+                        //        {
+                        //            _item["number"] = items[k].identityDocuments[j].number;
+                        //            _item["type"] = items[k].identityDocuments[j].locationType.type.Contains("DNI") ? "DNI" : items[k].identityDocuments[j].locationType.type.Contains("RUC") ? "RUC" : "";
+                        //         }
+                        //    }
+                        //    else
+                        //    {
+                        //        Dictionary<string, dynamic> doc = new Dictionary<string, dynamic>();
+                        //        doc["number"] = "0";
+                        //        doc["type"] = "XX";
+                        //        documents.Add(doc);
+                        //    }
+                        //    _item["name"] = items[k].matchedTerm;
 
-                        for (int i = 0; i < items.Count; i++)
+                        //}
+                        System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
+                        if (items.Count > 0)
                         {
-                            _response.sStatus = isCreate ? "OK" : "UPDATE";
-                            try
+                            if (!isCreate)
                             {
-                                string biography = "";
-                                items[i].categories = items[i].categories.Distinct().ToList();
-                                response = this.SaveResult(items[i], caseSystemId);
-                                biography = response.sMessage;
-                                response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId, biography);
-                                _response.sMessage = response.sMessage;
+                               // _repository.deshabilitarResultado(Case[0].SCaseId);
                             }
-                            catch (Exception ex)
+                            _response.data = items.Select(t => string.Join(",", t.categories.Distinct())).ToList();
+                            List<string> _categorys = _response.data.FindAll(t => t.Contains(","));
+                            _response.data = _response.data.FindAll(t => !t.Contains(","));
+                            for (int i = 0; i < _categorys.Count; i++)
                             {
-                                _response.sMessage = response.sMessage;
-                                System.Console.WriteLine("error : " + i + " - " + items[i].primaryName + " - " + ex.Message);
+                                _response.data.AddRange(_categorys[i].Split(",").ToList());
                             }
+                            _response.data = _response.data.Distinct().ToList();
+
+                            for (int i = 0; i < items.Count; i++)
+                            {
+                                _response.sStatus = isCreate ? "OK" : "UPDATE";
+                                try
+                                {
+                                    string biography = "";
+                                    items[i].categories = items[i].categories.Distinct().ToList();
+                                    response = this.SaveResult(items[i], caseSystemId);
+                                    biography = response.sMessage;
+                                    items[i].matchedTerm = this.formatearNombre(items[i].matchedTerm.Replace(',', ' ').Split(' '));
+                                    items[i].primaryName = this.formatearNombre(items[i].primaryName.Replace(',', ' ').Split(' '));
+                                    response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId, biography);
+                                    _response.sMessage = response.sMessage;
+                                }
+                                catch (Exception ex)
+                                {
+                                    _response.sMessage = response.sMessage;
+                                    System.Console.WriteLine("error : " + i + " - " + items[i].primaryName + " - " + ex.Message);
+                                }
+                            }
+                            if (item.tipoCargaId == "2")
+                                response = _repository.spcarga_coincidencias(item);
                         }
-                        if(item.tipoCargaId == "2")
-                            response = _repository.ins_tratamiento_cliente(item);
                     }
                 }
                 catch (Exception ex)
@@ -511,6 +548,20 @@ namespace protecta.WC1.api.Services
                 }
             });
             return _response;
+        }
+
+        private string formatearNombre(string[] word)
+        {
+            List<String> nombre = new List<String>();
+            List<String> apellidos = new List<String>();
+            for (var x = 0; x < word.Length; x++)
+            {
+                if (word[x] == word[x].ToUpper())
+                    apellidos.Add(word[x]);
+                else
+                    nombre.Add(word[x]);
+            }
+            return String.Join(" ", apellidos) + ' ' + String.Join(" ", nombre);
         }
 
         //public Microsoft.AspNetCore.Mvc.ActionResult getprueba()
