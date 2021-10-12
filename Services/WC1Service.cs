@@ -21,10 +21,12 @@ namespace protecta.WC1.api.Services
 {
     public class WC1Service
     {
+        public List<String> ValidPorcentage;
         WC1Repository _repository;
         RequestWc1 objDefault;
         public WC1Service()
         {
+            ValidPorcentage = new List<String> { "STRONG", "EXACT" };
             _repository = new WC1Repository();
             objDefault = new RequestWc1();
             objDefault.providerTypes = new List<string>() { "WATCHLIST" };
@@ -393,7 +395,8 @@ namespace protecta.WC1.api.Services
                             response.Data.Add(dataitem);
                         }
                         else
-                            response.isOtherList = true;
+                            if(getPorcentaje(items[i].matchStrength) >= 75)
+                                response.isOtherList = true;
                         if (item.idDocNumber != "")
                             if (!response.isIdNumber)
                                 response.isIdNumber = items[i].identityDocuments.Exists(t => t.number == item.idDocNumber);
@@ -474,6 +477,7 @@ namespace protecta.WC1.api.Services
                     if (items != null && items.Count > 0)
                     {
                         items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
+                        items = items.FindAll(t => ValidPorcentage.Contains(t.matchStrength));
                         //List<Dictionary<string, dynamic>> _items = new List<Dictionary<string, dynamic>>();
                         //Dictionary<string, dynamic> _item;
                         //for (int k = 0; k < items.Count; k++)
@@ -516,7 +520,8 @@ namespace protecta.WC1.api.Services
                                 _response.data.AddRange(_categorys[i].Split(",").ToList());
                             }
                             _response.data = _response.data.Distinct().ToList();
-
+                            if (item.tipoCargaId == "2")
+                                response = _repository.eliminarCoincidenciastemporales(item);
                             for (int i = 0; i < items.Count; i++)
                             {
                                 _response.sStatus = isCreate ? "OK" : "UPDATE";
