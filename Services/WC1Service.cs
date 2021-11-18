@@ -16,17 +16,20 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace protecta.WC1.api.Services
 {
     public class WC1Service
     {
         public List<String> ValidPorcentage;
+        public List<String> ValidPorcentageDemanda;
         WC1Repository _repository;
         RequestWc1 objDefault;
         public WC1Service()
         {
-            ValidPorcentage = new List<String> { "STRONG", "EXACT" };
+            ValidPorcentage = new List<String> { "EXACT" };
+            ValidPorcentageDemanda = new List<String> { "STRONG", "EXACT" };
             _repository = new WC1Repository();
             objDefault = new RequestWc1();
             objDefault.providerTypes = new List<string>() { "WATCHLIST" };
@@ -353,6 +356,11 @@ namespace protecta.WC1.api.Services
         }
         internal async Task<ListResponseDTO> getCoincidenceNotPep(ResquestAlert item)
         {
+            Stopwatch sw = new Stopwatch();
+            Stopwatch petition = new Stopwatch();
+
+            sw.Start();
+
             ListResponseDTO response = new ListResponseDTO();
             if (String.IsNullOrWhiteSpace(item.name))
             {
@@ -374,7 +382,9 @@ namespace protecta.WC1.api.Services
                 try
                 {
                     objDefault.name = item.name;
+                    petition.Start();
                     string result = createCase(objDefault);
+                    petition.Stop();
                     dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
                     items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((obj.results).ToString());
                     items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
@@ -395,8 +405,8 @@ namespace protecta.WC1.api.Services
                             response.Data.Add(dataitem);
                         }
                         else
-                            if(getPorcentaje(items[i].matchStrength) >= 75)
-                                response.isOtherList = true;
+                            if (getPorcentaje(items[i].matchStrength) == 100)
+                            response.isOtherList = true;
                         if (item.idDocNumber != "")
                             if (!response.isIdNumber)
                                 response.isIdNumber = items[i].identityDocuments.Exists(t => t.number == item.idDocNumber);
@@ -408,6 +418,14 @@ namespace protecta.WC1.api.Services
                     throw;
                 }
             });
+
+            sw.Stop();
+            Console.Out.WriteLine("tiempo de peticion al servicio de WC");
+            Console.Out.WriteLine(petition.Elapsed);
+            Console.Out.WriteLine("tiempo logica");
+            Console.Out.WriteLine(sw.Elapsed - petition.Elapsed);
+            Console.Out.WriteLine("tiempo total del api");
+            Console.Out.WriteLine(sw.Elapsed);
             return response;
         }
         public int getPorcentaje(string termn)
@@ -510,7 +528,7 @@ namespace protecta.WC1.api.Services
                         {
                             if (!isCreate)
                             {
-                               // _repository.deshabilitarResultado(Case[0].SCaseId);
+                                // _repository.deshabilitarResultado(Case[0].SCaseId);
                             }
                             _response.data = items.Select(t => string.Join(",", t.categories.Distinct())).ToList();
                             List<string> _categorys = _response.data.FindAll(t => t.Contains(","));
@@ -568,16 +586,194 @@ namespace protecta.WC1.api.Services
             }
             return String.Join(" ", apellidos) + ' ' + String.Join(" ", nombre);
         }
+        internal async Task<ResponseDTO> GetDemandaSearch(ResquestAlert item)
+        {
+            ResponseDTO respuesta = new ResponseDTO();
+            List<ResponseWc1> items = new List<ResponseWc1>();
+            List<Dictionary<string, dynamic>> _items = new List<Dictionary<string, dynamic>>();
+            Dictionary<string, dynamic> _item = null;
+            string objResult = "", tipoEntidad = item.typeDocument == "1" ? "ORGANISATION" : "INDIVIDUAL";
 
-        //public Microsoft.AspNetCore.Mvc.ActionResult getprueba()
-        //{
+            ResponseDTO profiles = new ResponseDTO();
+            if (String.IsNullOrWhiteSpace(item.name))
+            {
+                respuesta.sMessage = "Se debe agregar un nombre o razon social";
+                respuesta.nCode = 1;
+                return respuesta;
+            }
+            try
+            {
+                objDefault.name = item.name;
+                objDefault.entityType = tipoEntidad;
+                if (tipoEntidad == "ORGANISATION")
+                    objDefault.secondaryFields = new List<Properties>();
+                string result = createCase(objDefault);
+                if (!String.IsNullOrWhiteSpace(result))
+                {
+                    dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                    objResult = obj.results.ToString();
+                }
+                items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
+                if (items.Count > 0)
+                {
+                    if (tipoEntidad != "ORGANISATION")
+                        items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
+                    items = items.FindAll(t => ValidPorcentageDemanda.Contains(t.matchStrength));
+                    ResponseProfileDTO profile = new ResponseProfileDTO();
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        _item = new Dictionary<string, dynamic>();
+                        _item["SNOMBRE_COMPLETO"] = items[i].primaryName;
+                        if (items[i].categories.Count > 0)
+                        {
+                            _item["SLISTA"] = items[i].categories.Distinct().ToString() == "PEP" ? "LISTAS PEP" : "LISTAS INTERNACIONALES";
+                        }
+                        _item["SCARGO"] = "";
+                        if (_item["SLISTA"] == "LISTAS PEP")
+                        {
+                            string resultado = this.getProfiles(items[i].referenceId);
+                            profile = JsonConvert.DeserializeObject<ResponseProfileDTO>(resultado);
+                            if (profile.details.Count > 0)
+                                for (int j = 0; j < profile.details.Count; j++)
+                                {
+                                    if (profile.details[j].detailType == "REPORTS")
+                                        _item["SCARGO"] = profile.details[j].text;
+                                }
+                        }
+                        _item["SPORCEN_COINCIDENCIA"] = items[i].matchStrength == "STRONG" ? 75 : items[i].matchStrength == "EXACT" ? 100 : 0;
+                        _items.Add(_item);
+                    }
+                }
+                respuesta.sMessage = "Termino la busqueda satisfactoriamente.";
+                respuesta.nCode = 0;
+                respuesta.Items = new List<Dictionary<string, dynamic>>();
+                respuesta.Items.AddRange(_items);
+                return respuesta;
+            }
+            catch (Exception ex)
+            {
+                respuesta.sMessage = ex.Message;
+                respuesta.nCode = 1;
+                return respuesta;
+            }
+        }
+        internal async Task<ResponseDTO> alertsProcessJD(ResquestAlert item)
+        {
+            List<ObjCaseDTO> Case = new List<ObjCaseDTO>();
+            ResponseDTO _response = new ResponseDTO();
+            ResponseDTO response = new ResponseDTO();
+            _response.sStatus = "NOT FOUND";
+            bool isCreate = false;
+            await Task.Run(() =>
+            {
+                string result = "";
+                string objResult = "";
+                string caseId = "";
+                string caseSystemId = "";
+                Case = _repository.getCaseJD(item.name);
+                objDefault.name = item.name;
+                objDefault.entityType = item.tipo;
+                if (item.tipo == "ORGANISATION")
+                    objDefault.secondaryFields = new List<Properties>();
+                if (Case.Count == 0)
+                {
+                    result = createCase(objDefault);
+                    if (!String.IsNullOrWhiteSpace(result))
+                    {
+                        dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                        objResult = obj.results.ToString();
+                        caseSystemId = obj.caseSystemId.ToString();
+                        caseId = obj.caseId.ToString();
+                        if (caseId != "")
+                            isCreate = true;
+                    }
+                }
+                else
+                {
+                    result = getResults(Case[0].SCaseSystemId);
+                    if (!String.IsNullOrWhiteSpace(result))
+                    {
+                        dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                        objResult = obj.ToString();
+                        caseSystemId = Case[0].SCaseSystemId;
+                        caseId = Case[0].SCaseId;
+                    }
+                }
+                List<ResponseWc1> items = new List<ResponseWc1>();
 
-        //    return new System.Web.Http.Results.ResponseMessageResult(
-        //     Request.CreateErrorResponse(
-        //         (HttpStatusCode)422,
-        //         new HttpError("Something goes wrong")
-        //     )
-        // );
-        //}
+                try
+                {
+                    items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
+                    if (items != null && items.Count > 0)
+                    {
+                        if (item.tipo != "ORGANISATION")
+                            items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
+                        items = items.FindAll(t => ValidPorcentage.Contains(t.matchStrength));
+                        System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
+                        if (items.Count > 0)
+                        {
+                            _response.data = items.Select(t => string.Join(",", t.categories.Distinct())).ToList();
+                            List<string> _categorys = _response.data.FindAll(t => t.Contains(","));
+                            _response.data = _response.data.FindAll(t => !t.Contains(","));
+                            for (int i = 0; i < _categorys.Count; i++)
+                            {
+                                _response.data.AddRange(_categorys[i].Split(",").ToList());
+                            }
+                            _response.data = _response.data.Distinct().ToList();
+                            for (int i = 0; i < items.Count; i++)
+                            {
+                                _response.sStatus = isCreate ? "OK" : "UPDATE";
+                                try
+                                {
+                                    string biography = "";
+                                    items[i].categories = items[i].categories.Distinct().ToList();
+                                    response = this.SaveResultJD(items[i], caseSystemId);
+                                    biography = response.sMessage;
+                                    items[i].matchedTerm = this.formatearNombre(items[i].matchedTerm.Replace(',', ' ').Split(' '));
+                                    items[i].primaryName = this.formatearNombre(items[i].primaryName.Replace(',', ' ').Split(' '));
+                                    response = _repository.SaveResultCoincidenciasJD(items[i], item, response.nId, caseSystemId, caseId, biography);
+                                    _response.sMessage = response.sMessage;
+                                }
+                                catch (Exception ex)
+                                {
+                                    _response.sMessage = response.sMessage;
+                                    System.Console.WriteLine("error : " + i + " - " + items[i].primaryName + " - " + ex.Message);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Console.WriteLine("error : " + " - " + ex.Message);
+                }
+            });
+            return _response;
+        }
+        ResponseDTO SaveResultJD(ResponseWc1 item, string SystemCaseId)
+        {
+            ResponseDTO response = new ResponseDTO();
+            ResponseProfileDTO profile = new ResponseProfileDTO();
+            string resultado = this.getProfiles(item.referenceId);
+            profile = JsonConvert.DeserializeObject<ResponseProfileDTO>(resultado);
+            response = _repository.SaveResultJD(item, SystemCaseId);
+            try
+            {
+                if (response.nId > 0)
+                {
+                    if (profile.details.Count > 0)
+                        for (int j = 0; j < profile.details.Count; j++)
+                        {
+                            if (profile.details[j].detailType == "REPORTS")
+                                response.sMessage = profile.details[j].text;
+                        }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            return response;
+        }
     }
 }

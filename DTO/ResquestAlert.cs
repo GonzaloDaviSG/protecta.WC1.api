@@ -13,6 +13,8 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string name { get; set; }
         [DataMember]
+        public string tipo { get; set; }
+        [DataMember]
         public string typeDocument { get; set; }
         [DataMember]
         public string idDocNumber { get; set; }
