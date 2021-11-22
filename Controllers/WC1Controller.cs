@@ -120,6 +120,34 @@ namespace protecta.WC1.api.Controllers
             return taskA.Result;
 
         }
+        //[Route("GetDemandaSearch")]
+        //[HttpPost]
+        //public async Task<ResponseDTO> GetDemandaSearch(ResquestAlert item)
+        //{
+        //    ResponseDTO response = new ResponseDTO();
+        //    Task<ResponseDTO> taskA = null;
+        //    try
+        //    {
+        //        taskA = Task.Run(() =>
+        //        {
+        //            return new WC1Service().GetDemandaSearch(item);
+        //        });
+        //        taskA.Wait();
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        taskA = Task.Run(() =>
+        //        {
+        //            response.sMessage = "Comuniquese con el Administrador";
+        //            response.sStatus = "ERROR";
+        //            response.nCode = 1;
+        //            return response;
+        //        });
+        //    }
+        //    return taskA.Result;
+
+        //}
         [Route("alertsprocessJD")]
         [HttpPost]
         public async Task<ResponseDTO> alertsProcessJD(ResquestAlert item)

@@ -369,7 +369,7 @@ namespace protecta.WC1.api.Repository
                 throw ex;
             }
         }
-        
+
 
         internal ResponseDTO deshabilitarResultado(string sCaseId)
         {
@@ -414,7 +414,7 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                 OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
 
-                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NCODE,P_SMESSAGE};
+                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NCODE, P_SMESSAGE };
                 var query = @"
                     BEGIN
                         LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_DEL_COINCIDENCIA_TEMP(:P_NPERIODO_PROCESO, :P_NCODE, :P_SMESSAGE);
@@ -495,6 +495,42 @@ namespace protecta.WC1.api.Repository
             }
         }
 
+        internal List<Dictionary<string, dynamic>> getDemandas(string codBusqueda)
+        {
+            List<Dictionary<string, dynamic>> items = new List<Dictionary<string, dynamic>>();
+            try
+            {
+
+                using (OracleConnection cn = new OracleConnection(Utils.Config.AppSetting["ConnectionString:TIMEP"].ToString()))
+                {
+                    using (OracleCommand cmd = new OracleCommand())
+                    {
+                        cmd.Connection = cn;
+                        IDataReader reader = null;
+                        cmd.CommandText = string.Format("{0}.{1}", "PKG_BUSQ_COINCIDENCIAS_ALERTAS", "SP_GET_NOMBRES_A_DEMANDA");
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add("P_SCODBUSQUEDA", OracleDbType.NVarchar2, codBusqueda, ParameterDirection.Input);
+                        cmd.Parameters.Add("RC1", OracleDbType.RefCursor).Direction = ParameterDirection.Output;
+                        cn.Open();
+                        reader = cmd.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            Dictionary<string, dynamic> item = new Dictionary<string, dynamic>();
+                            item["SNOMBRE_COMPLETO"] = reader["SNOMBRE_COMPLETO"].ToString();
+                            item["STIPO_DOCUMENTO"] = reader["STIPO_DOCUMENTO"].ToString();
+                            items.Add(item);
+                        }
+                        cn.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return items;
+        }
+
         internal ResponseDTO spcarga_coincidencias(ResquestAlert item)
         {
             ResponseDTO respo = new ResponseDTO();
@@ -506,12 +542,12 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_NIDGRUPOSENAL = new OracleParameter("P_NIDGRUPOSENAL", OracleDbType.Int32, 1, ParameterDirection.Input);
                 OracleParameter P_CLIENT = new OracleParameter("P_CLIENT", OracleDbType.Varchar2, item.sClient, ParameterDirection.Input);
                 OracleParameter P_NIDUSUARIO = new OracleParameter("P_NIDUSUARIO", OracleDbType.Int32, item.nIdUsuario, ParameterDirection.Input);
-                OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int32, item.tipoCargaId, ParameterDirection.Input);               
+                OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int32, item.tipoCargaId, ParameterDirection.Input);
 
                 OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                 OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
 
-                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NIDREGIMEN, P_NIDALERTA, P_NIDGRUPOSENAL, P_CLIENT, P_NIDUSUARIO, P_NTIPOCARGA, P_NCODE,P_SMESSAGE};
+                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NIDREGIMEN, P_NIDALERTA, P_NIDGRUPOSENAL, P_CLIENT, P_NIDUSUARIO, P_NTIPOCARGA, P_NCODE, P_SMESSAGE };
                 var query = @"
                     BEGIN
                         LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_UPD_COINCIDENCIA(:P_NPERIODO_PROCESO, :P_NIDREGIMEN, :P_NIDALERTA, :P_NIDGRUPOSENAL, :P_CLIENT, 

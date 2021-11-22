@@ -589,11 +589,9 @@ namespace protecta.WC1.api.Services
         internal async Task<ResponseDTO> GetDemandaSearch(ResquestAlert item)
         {
             ResponseDTO respuesta = new ResponseDTO();
-            List<ResponseWc1> items = new List<ResponseWc1>();
-            List<Dictionary<string, dynamic>> _items = new List<Dictionary<string, dynamic>>();
-            Dictionary<string, dynamic> _item = null;
-            string objResult = "", tipoEntidad = item.typeDocument == "1" ? "ORGANISATION" : "INDIVIDUAL";
 
+            List<Dictionary<string, dynamic>> itemsBusqueda = new List<Dictionary<string, dynamic>>();
+            List<Dictionary<string, dynamic>> coincidencias = new List<Dictionary<string, dynamic>>();
             ResponseDTO profiles = new ResponseDTO();
             if (String.IsNullOrWhiteSpace(item.name))
             {
@@ -603,51 +601,30 @@ namespace protecta.WC1.api.Services
             }
             try
             {
-                objDefault.name = item.name;
-                objDefault.entityType = tipoEntidad;
-                if (tipoEntidad == "ORGANISATION")
-                    objDefault.secondaryFields = new List<Properties>();
-                string result = createCase(objDefault);
-                if (!String.IsNullOrWhiteSpace(result))
+                if (item.tipoBusqueda == 2)
                 {
-                    dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
-                    objResult = obj.results.ToString();
-                }
-                items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
-                if (items.Count > 0)
-                {
-                    if (tipoEntidad != "ORGANISATION")
-                        items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
-                    items = items.FindAll(t => ValidPorcentageDemanda.Contains(t.matchStrength));
-                    ResponseProfileDTO profile = new ResponseProfileDTO();
-                    for (int i = 0; i < items.Count; i++)
+                    itemsBusqueda = _repository.getDemandas(item.codBusqueda);
+                    if (itemsBusqueda.Count > 0)
                     {
-                        _item = new Dictionary<string, dynamic>();
-                        _item["SNOMBRE_COMPLETO"] = items[i].primaryName;
-                        if (items[i].categories.Count > 0)
+                        for (int i = 0; i < itemsBusqueda.Count; i++)
                         {
-                            _item["SLISTA"] = items[i].categories.Distinct().ToString() == "PEP" ? "LISTAS PEP" : "LISTAS INTERNACIONALES";
+                            List<Dictionary<string, dynamic>> _coincidencias = null;
+                            _coincidencias = getCoincidenciasDemanda(itemsBusqueda[i], true);
+                            coincidencias.AddRange(_coincidencias);
                         }
-                        _item["SCARGO"] = "";
-                        if (_item["SLISTA"] == "LISTAS PEP")
-                        {
-                            string resultado = this.getProfiles(items[i].referenceId);
-                            profile = JsonConvert.DeserializeObject<ResponseProfileDTO>(resultado);
-                            if (profile.details.Count > 0)
-                                for (int j = 0; j < profile.details.Count; j++)
-                                {
-                                    if (profile.details[j].detailType == "REPORTS")
-                                        _item["SCARGO"] = profile.details[j].text;
-                                }
-                        }
-                        _item["SPORCEN_COINCIDENCIA"] = items[i].matchStrength == "STRONG" ? 75 : items[i].matchStrength == "EXACT" ? 100 : 0;
-                        _items.Add(_item);
                     }
+                }
+                else
+                {
+                    Dictionary<string, dynamic> _item = new Dictionary<string, dynamic>();
+                    _item["SNOMBRE_COMPLETO"] = item.name;
+                    _item["STIPO_DOCUMENTO"] = item.typeDocument;
+                    coincidencias = getCoincidenciasDemanda(_item, false);
                 }
                 respuesta.sMessage = "Termino la busqueda satisfactoriamente.";
                 respuesta.nCode = 0;
                 respuesta.Items = new List<Dictionary<string, dynamic>>();
-                respuesta.Items.AddRange(_items);
+                respuesta.Items.AddRange(coincidencias);
                 return respuesta;
             }
             catch (Exception ex)
@@ -656,6 +633,93 @@ namespace protecta.WC1.api.Services
                 respuesta.nCode = 1;
                 return respuesta;
             }
+        }
+        public List<Dictionary<string, dynamic>> getCoincidenciasDemanda(Dictionary<string, dynamic> item, bool isMasive)
+        {
+
+            string objResult = "";
+            string tipoEntidad = "";
+            string tipoPersona = "";
+            string tipoDocumento = "";
+            List<Dictionary<string, dynamic>> _items = new List<Dictionary<string, dynamic>>();
+            Dictionary<string, dynamic> _item = null;
+            List<ResponseWc1> items = new List<ResponseWc1>();
+            if (isMasive)
+            {
+                tipoEntidad = item["STIPO_DOCUMENTO"] == "RUC" ? "ORGANISATION" : "INDIVIDUAL";
+                tipoPersona = item["STIPO_DOCUMENTO"] == "RUC" ? "EMPRESA  (PERSONA JURÍDICA)" : "PERSONA NATURAL";
+                tipoDocumento = item["STIPO_DOCUMENTO"] == "RUC" ? "RUC" : "DNI";
+            }
+            else
+            {
+                tipoEntidad = item["STIPO_DOCUMENTO"] == "1" ? "ORGANISATION" : "INDIVIDUAL";
+                tipoPersona = item["STIPO_DOCUMENTO"] == "1" ? "EMPRESA  (PERSONA JURÍDICA)" : "PERSONA NATURAL";
+                tipoDocumento = item["STIPO_DOCUMENTO"] == "1" ? "RUC" : "DNI";
+            }
+            objDefault.name = item["SNOMBRE_COMPLETO"];
+            objDefault.entityType = tipoEntidad;
+            if (tipoEntidad == "ORGANISATION")
+                objDefault.secondaryFields = new List<Properties>();
+            string result = createCase(objDefault);
+            if (!String.IsNullOrWhiteSpace(result))
+            {
+                dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                objResult = obj.results.ToString();
+            }
+            items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
+            if (items.Count > 0)
+            {
+                if (tipoEntidad != "ORGANISATION")
+                    items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
+                items = items.FindAll(t => ValidPorcentageDemanda.Contains(t.matchStrength));
+                ResponseProfileDTO profile = new ResponseProfileDTO();
+                for (int i = 0; i < items.Count; i++)
+                {
+                    _item = new Dictionary<string, dynamic>();
+                    _item["SNOMBRE_COMPLETO"] = items[i].primaryName;
+                    _item["SNOMBRE_BUSQUEDA"] = item["SNOMBRE_COMPLETO"];
+                    if (items[i].categories.Count > 0)
+                    {
+                        _item["SLISTA"] = items[i].categories.Distinct().ToString() == "PEP" ? "LISTAS PEP" : "LISTAS INTERNACIONALES";
+                    }
+                    _item["DFECHA_BUSQUEDA"] = DateTime.Now.ToString();
+                    _item["SCARGO"] = "-";
+                    _item["STIPO_PERSONA"] = tipoPersona;
+                    _item["SNUM_DOCUMENTO"] = "-";
+                    _item["STIPO_DOCUMENTO"] = "-";
+                    List<Dictionary<string, dynamic>> documents = new List<Dictionary<string, dynamic>>();
+                    if (items[i].identityDocuments.Count > 0)
+                    {
+                        for (int j = 0; j < items[i].identityDocuments.Count; j++)
+                        {
+                            if (items[i].identityDocuments[j].locationType.type.Contains("RUC"))
+                            {
+                                _item["SNUM_DOCUMENTO"] = items[i].identityDocuments[j].number.Length == 11 ? "0" : items[i].identityDocuments[j].number;
+                                _item["STIPO_DOCUMENTO"] = "RUC";
+                            }
+                            else if (items[i].identityDocuments[j].locationType.type.Contains("DNI"))
+                            {
+                                _item["SNUM_DOCUMENTO"] = items[i].identityDocuments[j].number.Length == 8 ? "0" : items[i].identityDocuments[j].number;
+                                _item["STIPO_DOCUMENTO"] = "DNI";
+                            }
+                        }
+                    }
+                    if (_item["SLISTA"] == "LISTAS PEP")
+                    {
+                        string resultado = this.getProfiles(items[i].referenceId);
+                        profile = JsonConvert.DeserializeObject<ResponseProfileDTO>(resultado);
+                        if (profile.details.Count > 0)
+                            for (int j = 0; j < profile.details.Count; j++)
+                            {
+                                if (profile.details[j].detailType == "REPORTS")
+                                    _item["SCARGO"] = profile.details[j].text;
+                            }
+                    }
+                    _item["SPORCEN_COINCIDENCIA"] = items[i].matchStrength == "STRONG" ? 75 : items[i].matchStrength == "EXACT" ? 100 : 0;
+                    _items.Add(_item);
+                }
+            }
+            return _items;
         }
         internal async Task<ResponseDTO> alertsProcessJD(ResquestAlert item)
         {
