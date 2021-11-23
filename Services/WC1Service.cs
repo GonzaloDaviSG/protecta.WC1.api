@@ -593,12 +593,6 @@ namespace protecta.WC1.api.Services
             List<Dictionary<string, dynamic>> itemsBusqueda = new List<Dictionary<string, dynamic>>();
             List<Dictionary<string, dynamic>> coincidencias = new List<Dictionary<string, dynamic>>();
             ResponseDTO profiles = new ResponseDTO();
-            if (String.IsNullOrWhiteSpace(item.name))
-            {
-                respuesta.sMessage = "Se debe agregar un nombre o razon social";
-                respuesta.nCode = 1;
-                return respuesta;
-            }
             try
             {
                 if (item.tipoBusqueda == 2)
