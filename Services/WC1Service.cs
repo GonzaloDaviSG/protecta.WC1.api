@@ -26,6 +26,8 @@ namespace protecta.WC1.api.Services
         public List<String> ValidPorcentageDemanda;
         WC1Repository _repository;
         RequestWc1 objDefault;
+        List<int> records = new List<int>();
+        bool istest;
         public WC1Service()
         {
             ValidPorcentage = new List<String> { "EXACT" };
@@ -39,6 +41,10 @@ namespace protecta.WC1.api.Services
             objDefault.secondaryFields = new List<Properties>();
             objDefault.nameTransposition = true;
             objDefault.secondaryFields.Add(new Properties() { typeId = "SFCT_5", value = "PER" });
+            istest = false;
+            records.Add(1);
+            records.Add(2);
+            records.Add(3);
         }
 
         public List<ResponseWc1> Create(RequestWc1 item)
@@ -292,34 +298,42 @@ namespace protecta.WC1.api.Services
                 if (response.nId > 0)
                 {
                     _repository.SaveProfile(profile, item.resultId, response.nId);
-                    if (item.sources.Count > 0)
-                        for (int j = 0; j < item.sources.Count; j++)
-                            _repository.SaveSources(item.sources[j], response.nId);
-                    if (item.categories.Count > 0)
-                        for (int j = 0; j < item.categories.Count; j++)
-                            _repository.SaveCategories(item.categories[j], response.nId);
-                    if (item.events.Count > 0)
-                        for (int j = 0; j < item.events.Count; j++)
-                            _repository.SaveEvents(item.events[j], response.nId);
-                    if (item.countryLinks.Count > 0)
-                        for (int j = 0; j < item.countryLinks.Count; j++)
-                            _repository.SaveCountryLinks(item.countryLinks[j], response.nId);
-                    if (item.identityDocuments.Count > 0)
-                        for (int j = 0; j < item.identityDocuments.Count; j++)
-                            _repository.SaveIdentityDocuments(item.identityDocuments[j], response.nId);
-                    if (profile.sources.Count > 0)
-                        for (int j = 0; j < profile.sources.Count; j++)
-                            _repository.SaveDetailSources(profile.sources[j], response.nId);
-                    if (profile.weblinks.Count > 0)
-                        for (int j = 0; j < profile.weblinks.Count; j++)
-                            _repository.SaveWebLinks(profile.weblinks[j], response.nId);
-                    if (profile.details.Count > 0)
-                        for (int j = 0; j < profile.details.Count; j++)
-                        {
-                            _repository.SaveDetail(profile.details[j], response.nId);
-                            if (profile.details[j].detailType == "BIOGRAPHY")
-                                response.sMessage = profile.details[j].text;
-                        }
+                    if (item.sources != null)
+                        if (item.sources.Count > 0)
+                            for (int j = 0; j < item.sources.Count; j++)
+                                _repository.SaveSources(item.sources[j], response.nId);
+                    if (item.categories != null)
+                        if (item.categories.Count > 0)
+                            for (int j = 0; j < item.categories.Count; j++)
+                                _repository.SaveCategories(item.categories[j], response.nId);
+                    if (item.events != null)
+                        if (item.events.Count > 0)
+                            for (int j = 0; j < item.events.Count; j++)
+                                _repository.SaveEvents(item.events[j], response.nId);
+                    if (item.countryLinks != null)
+                        if (item.countryLinks.Count > 0)
+                            for (int j = 0; j < item.countryLinks.Count; j++)
+                                _repository.SaveCountryLinks(item.countryLinks[j], response.nId);
+                    if (item.identityDocuments != null)
+                        if (item.identityDocuments.Count > 0)
+                            for (int j = 0; j < item.identityDocuments.Count; j++)
+                                _repository.SaveIdentityDocuments(item.identityDocuments[j], response.nId);
+                    if (profile.sources != null)
+                        if (profile.sources.Count > 0)
+                            for (int j = 0; j < profile.sources.Count; j++)
+                                _repository.SaveDetailSources(profile.sources[j], response.nId);
+                    if (profile.weblinks != null)
+                        if (profile.weblinks.Count > 0)
+                            for (int j = 0; j < profile.weblinks.Count; j++)
+                                _repository.SaveWebLinks(profile.weblinks[j], response.nId);
+                    if (profile.details != null)
+                        if (profile.details.Count > 0)
+                            for (int j = 0; j < profile.details.Count; j++)
+                            {
+                                _repository.SaveDetail(profile.details[j], response.nId);
+                                if (profile.details[j].detailType == "REPORTS")
+                                    response.sMessage = profile.details[j].text;
+                            }
                 }
             }
             catch (Exception ex)
@@ -832,6 +846,159 @@ namespace protecta.WC1.api.Services
                 throw;
             }
             return response;
+        }
+        public async Task<ResponseDTO> getClients(ResquestAlert item)
+        {
+            ResponseDTO _response = new ResponseDTO();
+            _repository.deleteCoincidenciastmp(item.periodId);
+            List<Dictionary<string, dynamic>> items = new List<Dictionary<string, dynamic>>();
+            try
+            {
+                if (item.tipoCargaId == "1")
+                {
+                    for (int j = 0; j < records.Count; j++)
+                    {
+                        item.grupoSenalId = records[j].ToString();
+                        item.items = _repository.getClientsForGroups(item);
+                        List<string> names = item.items.Select(t => t["name"]).Distinct().ToList();
+                        if (names.Count > 0)
+                        {
+                            for (int i = 0; i < names.Count; i++)
+                            {
+                                _response = await searchCoincidence(item, names[i]);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    _response = await searchCoincidence(item);
+                }
+                if (_response.nCode == 0)
+                {
+                    _response = _repository.spcarga_coincidencias(item);
+                }
+                return _response;
+            }
+            catch (Exception ex)
+            {
+                _response = new ResponseDTO();
+                _response.nCode = 1;
+                _response.sMessage = ex.Message;
+                return _response;
+            }
+
+        }
+        public async Task<ResponseDTO> searchCoincidence(ResquestAlert item, dynamic name = null)
+        {
+            List<ObjCaseDTO> Case = new List<ObjCaseDTO>();
+            ResponseDTO _response = new ResponseDTO();
+            ResponseDTO response = new ResponseDTO();
+            if (item.tipoCargaId == "1")
+            {
+                item.name = name;
+                bool isruc = item.items.FindAll(t => t["name"] == name).Exists(t => t["tipo"] == "1");
+                item.tipo = isruc ? "ORGANISATION" : "INDIVIDUAL";
+            }
+            _response.sStatus = "NOT FOUND";
+            bool isCreate = false;
+            await Task.Run(() =>
+            {
+                string result = "";
+                string objResult = "";
+                string caseId = "";
+                string caseSystemId = "";
+                if (!istest)//validacion para tomar los json de prueba
+                {
+                    Case = _repository.getCase(item.name);
+                    objDefault.name = item.name;
+                    objDefault.entityType = item.tipo;
+                    if (item.tipo == "ORGANISATION")
+                        objDefault.secondaryFields = new List<Properties>();
+                    if (Case.Count == 0)
+                    {
+                        result = createCase(objDefault);
+                        if (!String.IsNullOrWhiteSpace(result))
+                        {
+                            dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                            objResult = obj.results.ToString();
+                            caseSystemId = obj.caseSystemId.ToString();
+                            caseId = obj.caseId.ToString();
+                            if (caseId != "")
+                                isCreate = true;
+                        }
+                    }
+                    else
+                    {
+                        result = getResults(Case[0].SCaseSystemId);
+                        if (!String.IsNullOrWhiteSpace(result))
+                        {
+                            dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                            objResult = obj.ToString();
+                            caseSystemId = Case[0].SCaseSystemId;
+                            caseId = Case[0].SCaseId;
+                        }
+                    }
+                }
+                else
+                {
+                    string path = "";
+                    if (item.tipo == "ORGANISATION")
+                    {
+                        path = AppDomain.CurrentDomain.BaseDirectory + "JsonTest/Organizacion.json";
+                    }
+                    else
+                    {
+                        path = AppDomain.CurrentDomain.BaseDirectory + "JsonTest/Individuo.json";
+                    }
+                    path = path.Replace("\\bin\\Debug\\netcoreapp2.1", "");
+                    using (StreamReader jsonStream = System.IO.File.OpenText(path))
+                    {
+                        objResult = jsonStream.ReadToEnd();
+                    }
+                }
+                List<ResponseWc1> items = new List<ResponseWc1>();
+
+                try
+                {
+                    items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((objResult).ToString());
+                    if (items != null && items.Count > 0)
+                    {
+                        if (item.tipo != "ORGANISATION")
+                            items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
+                        items = items.FindAll(t => ValidPorcentage.Contains(t.matchStrength));
+                        System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
+                        if (items.Count > 0)
+                        {
+                            _response.data = items.Select(t => string.Join(",", t.categories.Distinct())).ToList();
+                            List<string> _categorys = _response.data.FindAll(t => t.Contains(","));
+                            _response.data = _response.data.FindAll(t => !t.Contains(","));
+                            for (int i = 0; i < _categorys.Count; i++)
+                            {
+                                _response.data.AddRange(_categorys[i].Split(",").ToList());
+                            }
+                            _response.data = _response.data.Distinct().ToList();
+                            for (int i = 0; i < items.Count; i++)
+                            {
+                                _response.sStatus = isCreate ? "OK" : "UPDATE";
+                                string biography = "";
+                                items[i].categories = items[i].categories.Distinct().ToList();
+                                response = this.SaveResult(items[i], caseSystemId);
+                                biography = response.sMessage;
+                                items[i].matchedTerm = this.formatearNombre(items[i].matchedTerm.Replace(',', ' ').Split(' '));
+                                items[i].primaryName = this.formatearNombre(items[i].primaryName.Replace(',', ' ').Split(' '));
+                                response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId, biography);
+                                _response.sMessage = response.sMessage;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+            });
+            return _response;
         }
     }
 }

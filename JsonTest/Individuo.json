@@ -1,0 +1,399 @@
+ [
+    {
+      "resultId": "5jb6v5xctyup1g7n12477xf7x",
+      "referenceId": "e_tr_wci_3539164",
+      "matchScore": 80.62,
+      "matchStrength": "WEAK",
+      "matchedTerm": "Maria Teresa FERNANDEZ",
+      "submittedTerm": "ABAD FERNANDEZ MARIA TERESA",
+      "matchedNameType": "PRIMARY",
+      "secondaryFieldResults": [],
+      "sources": [
+        "b_trwc_ARAFIP"
+      ],
+      "categories": [
+        "Regulatory Enforcement"
+      ],
+      "creationDate": "2021-12-02T19:50:02.138Z",
+      "modificationDate": "2021-12-02T19:50:02.138Z",
+      "resolution": null,
+      "resultReview": {
+        "reviewRequired": false,
+        "reviewRequiredDate": "2017-08-17T00:00:00.000Z",
+        "reviewRemark": null,
+        "reviewDate": null
+      },
+      "primaryName": "Maria Teresa FERNANDEZ",
+      "events": [],
+      "countryLinks": [
+        {
+          "country": {
+            "code": "ARG",
+            "name": "ARGENTINA"
+          },
+          "countryText": "ARGENTINA",
+          "type": "NATIONALITY"
+        },
+        {
+          "country": {
+            "code": "ARG",
+            "name": "ARGENTINA"
+          },
+          "countryText": "ARGENTINA",
+          "type": "LOCATION"
+        }
+      ],
+      "identityDocuments": [
+        {
+          "entity": null,
+          "expiryDate": null,
+          "issueDate": null,
+          "issuer": null,
+          "locationType": {
+            "country": {
+              "code": "ARG",
+              "name": "ARGENTINA"
+            },
+            "name": "CLAVE UNICA DE IDENTIFICACION TRIBUTARIA - UNIQUE TAX CODE IDENTIFICATION",
+            "type": "AR-CUIT"
+          },
+          "number": "27-04786333-9",
+          "type": "CUIT"
+        }
+      ],
+      "category": "INDIVIDUAL",
+      "providerType": "WATCHLIST",
+      "gender": "FEMALE"
+    },
+    {
+      "resultId": "5jb6v5xctyup1g7n12477xf7z",
+      "referenceId": "e_tr_wci_2215783",
+      "matchScore": 80.62,
+      "matchStrength": "WEAK",
+      "matchedTerm": "FERNÁNDEZ,María Teresa",
+      "submittedTerm": "ABAD FERNANDEZ MARIA TERESA",
+      "matchedNameType": "AKA",
+      "secondaryFieldResults": [],
+      "sources": [
+        "b_trwc_PEP L"
+      ],
+      "categories": [
+        "PEP"
+      ],
+      "creationDate": "2021-12-02T19:50:02.138Z",
+      "modificationDate": "2021-12-02T19:50:02.138Z",
+      "resolution": null,
+      "resultReview": {
+        "reviewRequired": false,
+        "reviewRequiredDate": "2021-08-26T00:00:00.000Z",
+        "reviewRemark": null,
+        "reviewDate": null
+      },
+      "primaryName": "Maria Teresa FERNANDEZ GONZALEZ",
+      "events": [],
+      "countryLinks": [
+        {
+          "country": {
+            "code": "ESP",
+            "name": "SPAIN"
+          },
+          "countryText": "SPAIN",
+          "type": "LOCATION"
+        },
+        {
+          "country": {
+            "code": "ESP",
+            "name": "SPAIN"
+          },
+          "countryText": "SPAIN",
+          "type": "NATIONALITY"
+        }
+      ],
+      "identityDocuments": [
+        {
+          "entity": null,
+          "expiryDate": null,
+          "issueDate": null,
+          "issuer": null,
+          "locationType": {
+            "country": {
+              "code": "ESP",
+              "name": "SPAIN"
+            },
+            "name": "DOCUMENTO NACIONAL DE IDENTIDAD - NATIONAL ID NUMBER",
+            "type": "ES-DNI"
+          },
+          "number": "2198030 N",
+          "type": "DNI"
+        }
+      ],
+      "category": "CRIME - FINANCIAL",
+      "providerType": "WATCHLIST",
+      "gender": "FEMALE"
+    },
+    {
+      "resultId": "5jb6v5xctyup1g7n12477xf83",
+      "referenceId": "e_tr_wci_2013376",
+      "matchScore": 80.62,
+      "matchStrength": "WEAK",
+      "matchedTerm": "FERNÁNDEZ,María Teresa",
+      "submittedTerm": "ABAD FERNANDEZ MARIA TERESA",
+      "matchedNameType": "AKA",
+      "secondaryFieldResults": [],
+      "sources": [
+        "b_trwc_PEP SN"
+      ],
+      "categories": [
+        "PEP"
+      ],
+      "creationDate": "2021-12-02T19:50:02.138Z",
+      "modificationDate": "2021-12-02T19:50:02.138Z",
+      "resolution": null,
+      "resultReview": {
+        "reviewRequired": false,
+        "reviewRequiredDate": "2021-08-27T00:00:00.000Z",
+        "reviewRemark": null,
+        "reviewDate": null
+      },
+      "primaryName": "Maria Teresa FERNANDEZ CABRERA",
+      "events": [
+        {
+          "address": null,
+          "allegedAddresses": [],
+          "day": 19,
+          "fullDate": "1966-03-19",
+          "month": 3,
+          "type": "BIRTH",
+          "year": 1966
+        }
+      ],
+      "countryLinks": [
+        {
+          "country": {
+            "code": "CHL",
+            "name": "CHILE"
+          },
+          "countryText": "CHILE",
+          "type": "NATIONALITY"
+        },
+        {
+          "country": {
+            "code": "CHL",
+            "name": "CHILE"
+          },
+          "countryText": "CHILE",
+          "type": "POB"
+        },
+        {
+          "country": {
+            "code": "CHL",
+            "name": "CHILE"
+          },
+          "countryText": "CHILE",
+          "type": "LOCATION"
+        }
+      ],
+      "identityDocuments": [
+        {
+          "entity": null,
+          "expiryDate": null,
+          "issueDate": null,
+          "issuer": null,
+          "locationType": {
+            "country": {
+              "code": "CHL",
+              "name": "CHILE"
+            },
+            "name": "ROL UNICO NACIONAL - NATIONAL ID NUMBER",
+            "type": "CL-RUN"
+          },
+          "number": "9.922.632-3",
+          "type": "RUN"
+        }
+      ],
+      "category": "INDIVIDUAL",
+      "providerType": "WATCHLIST",
+      "gender": "FEMALE"
+    },
+    {
+      "resultId": "5jb6v5xctyup1g7n12477xf85",
+      "referenceId": "e_tr_wci_3338652",
+      "matchScore": 80.62,
+      "matchStrength": "WEAK",
+      "matchedTerm": "Maria Teresa FERNANDEZ",
+      "submittedTerm": "ABAD FERNANDEZ MARIA TERESA",
+      "matchedNameType": "PRIMARY",
+      "secondaryFieldResults": [],
+      "sources": [
+        "b_trwc_PEP SN-R"
+      ],
+      "categories": [
+        "PEP"
+      ],
+      "creationDate": "2021-12-02T19:50:02.138Z",
+      "modificationDate": "2021-12-02T19:50:02.138Z",
+      "resolution": null,
+      "resultReview": {
+        "reviewRequired": false,
+        "reviewRequiredDate": "2019-12-22T00:00:00.000Z",
+        "reviewRemark": null,
+        "reviewDate": null
+      },
+      "primaryName": "Maria Teresa FERNANDEZ",
+      "events": [],
+      "countryLinks": [
+        {
+          "country": {
+            "code": "ARG",
+            "name": "ARGENTINA"
+          },
+          "countryText": "ARGENTINA",
+          "type": "NATIONALITY"
+        },
+        {
+          "country": {
+            "code": "ARG",
+            "name": "ARGENTINA"
+          },
+          "countryText": "ARGENTINA",
+          "type": "LOCATION"
+        }
+      ],
+      "identityDocuments": [],
+      "category": "INDIVIDUAL",
+      "providerType": "WATCHLIST",
+      "gender": "FEMALE"
+    },
+    {
+      "resultId": "5jb6v5xctyup1g7n12477xf81",
+      "referenceId": "e_tr_wci_4039582",
+      "matchScore": 79.24,
+      "matchStrength": "WEAK",
+      "matchedTerm": "Maria TERESA",
+      "submittedTerm": "ABAD FERNANDEZ MARIA TERESA",
+      "matchedNameType": "PRIMARY",
+      "secondaryFieldResults": [],
+      "sources": [
+        "b_trwc_INMCA-DD2"
+      ],
+      "categories": [
+        "Regulatory Enforcement"
+      ],
+      "creationDate": "2021-12-02T19:50:02.138Z",
+      "modificationDate": "2021-12-02T19:50:02.138Z",
+      "resolution": null,
+      "resultReview": {
+        "reviewRequired": false,
+        "reviewRequiredDate": "2018-04-07T00:00:00.000Z",
+        "reviewRemark": null,
+        "reviewDate": null
+      },
+      "primaryName": "Maria TERESA",
+      "events": [],
+      "countryLinks": [
+        {
+          "country": {
+            "code": "IND",
+            "name": "INDIA"
+          },
+          "countryText": "INDIA",
+          "type": "LOCATION"
+        },
+        {
+          "country": {
+            "code": "IND",
+            "name": "INDIA"
+          },
+          "countryText": "INDIA",
+          "type": "NATIONALITY"
+        }
+      ],
+      "identityDocuments": [
+        {
+          "entity": null,
+          "expiryDate": null,
+          "issueDate": null,
+          "issuer": null,
+          "locationType": {
+            "country": {
+              "code": "IND",
+              "name": "INDIA"
+            },
+            "name": "DIRECTORS IDENTIFICATION NUMBER",
+            "type": "IN-DIN"
+          },
+          "number": "3561288",
+          "type": "DIN"
+        }
+      ],
+      "category": "INDIVIDUAL",
+      "providerType": "WATCHLIST",
+      "gender": "FEMALE"
+    },
+    {
+      "resultId": "5jb6v5xctyup1g7n12477xf87",
+      "referenceId": "e_tr_wci_3717039",
+      "matchScore": 78.66,
+      "matchStrength": "WEAK",
+      "matchedTerm": "Maria Teresita FERNANDEZ",
+      "submittedTerm": "ABAD FERNANDEZ MARIA TERESA",
+      "matchedNameType": "PRIMARY",
+      "secondaryFieldResults": [],
+      "sources": [
+        "b_trwc_ARAFIP"
+      ],
+      "categories": [
+        "Regulatory Enforcement"
+      ],
+      "creationDate": "2021-12-02T19:50:02.138Z",
+      "modificationDate": "2021-12-02T19:50:02.138Z",
+      "resolution": null,
+      "resultReview": {
+        "reviewRequired": false,
+        "reviewRequiredDate": "2017-12-27T00:00:00.000Z",
+        "reviewRemark": null,
+        "reviewDate": null
+      },
+      "primaryName": "Maria Teresita FERNANDEZ",
+      "events": [],
+      "countryLinks": [
+        {
+          "country": {
+            "code": "ARG",
+            "name": "ARGENTINA"
+          },
+          "countryText": "ARGENTINA",
+          "type": "NATIONALITY"
+        },
+        {
+          "country": {
+            "code": "ARG",
+            "name": "ARGENTINA"
+          },
+          "countryText": "ARGENTINA",
+          "type": "LOCATION"
+        }
+      ],
+      "identityDocuments": [
+        {
+          "entity": null,
+          "expiryDate": null,
+          "issueDate": null,
+          "issuer": null,
+          "locationType": {
+            "country": {
+              "code": "ARG",
+              "name": "ARGENTINA"
+            },
+            "name": "CLAVE UNICA DE IDENTIFICACION TRIBUTARIA - UNIQUE TAX CODE IDENTIFICATION",
+            "type": "AR-CUIT"
+          },
+          "number": "27190152036",
+          "type": "CUIT"
+        }
+      ],
+      "category": "INDIVIDUAL",
+      "providerType": "WATCHLIST",
+      "gender": "FEMALE"
+    }
+  ]

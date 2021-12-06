@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
@@ -10,6 +11,9 @@ namespace protecta.WC1.api.DTO
     [DataContract]
     public class ResquestAlert
     {
+        [DataMember]
+        public string grupoSenalId { get; set; }
+
         [DataMember]
         public string name { get; set; }
         [DataMember]
@@ -32,5 +36,7 @@ namespace protecta.WC1.api.DTO
         public int tipoBusqueda { get; set; }
         [DataMember]
         public string codBusqueda { get; set; }
+        [DataMember]
+        public List<Dictionary<string, string>> items  { get; set; }
     }
 }

@@ -1,0 +1,52 @@
+
+ [
+    {
+      "resultId": "5jb6znpw2gto1g7n0rfg6m2g6",
+      "referenceId": "e_tr_wco_6556664",
+      "matchScore": 82.86,
+      "matchStrength": "WEAK",
+      "matchedTerm": "COURIER INTERNATIONAL LIMITED",
+      "submittedTerm": "OLVA COURIER S.A.C.",
+      "matchedNameType": "PRIMARY",
+      "secondaryFieldResults": [],
+      "sources": [
+        "b_trwc_PEP N-A"
+      ],
+      "categories": [
+        "PEP"
+      ],
+      "creationDate": "2021-12-02T19:46:42.118Z",
+      "modificationDate": "2021-12-02T19:46:42.118Z",
+      "resolution": null,
+      "resultReview": {
+        "reviewRequired": false,
+        "reviewRequiredDate": "2021-07-27T00:00:00.000Z",
+        "reviewRemark": null,
+        "reviewDate": null
+      },
+      "primaryName": "COURIER INTERNATIONAL LIMITED",
+      "events": null,
+      "countryLinks": [
+        {
+          "country": {
+            "code": "SSD",
+            "name": "SOUTH SUDAN"
+          },
+          "countryText": "SOUTH SUDAN",
+          "type": "LOCATION"
+        },
+        {
+          "country": {
+            "code": "SSD",
+            "name": "SOUTH SUDAN"
+          },
+          "countryText": "SOUTH SUDAN",
+          "type": "REGISTEREDIN"
+        }
+      ],
+      "identityDocuments": [],
+      "category": "CORPORATE",
+      "providerType": "WATCHLIST",
+      "gender": null
+    }
+  ]
