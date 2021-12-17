@@ -537,8 +537,6 @@ namespace protecta.WC1.api.Repository
             try
             {
                 OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.Int32, item.periodId, ParameterDirection.Input);
-                OracleParameter P_NIDREGIMEN = new OracleParameter("P_NIDREGIMEN", OracleDbType.Int32, 1, ParameterDirection.Input);
-                //OracleParameter P_NIDALERTA = new OracleParameter("P_NIDALERTA", OracleDbType.Int32, item.alertId, ParameterDirection.Input);
                 OracleParameter P_NIDGRUPOSENAL = new OracleParameter("P_NIDGRUPOSENAL", OracleDbType.Int32, 1, ParameterDirection.Input);
                 OracleParameter P_CLIENT = new OracleParameter("P_CLIENT", OracleDbType.Varchar2, item.sClient, ParameterDirection.Input);
                 OracleParameter P_NIDUSUARIO = new OracleParameter("P_NIDUSUARIO", OracleDbType.Int32, item.nIdUsuario, ParameterDirection.Input);
@@ -547,10 +545,10 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                 OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
 
-                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NIDREGIMEN, P_NIDGRUPOSENAL, P_CLIENT, P_NIDUSUARIO, P_NTIPOCARGA, P_NCODE, P_SMESSAGE };
+                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NIDGRUPOSENAL, P_CLIENT, P_NIDUSUARIO, P_NTIPOCARGA, P_NCODE, P_SMESSAGE };
                 var query = @"
                     BEGIN
-                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_UPD_COINCIDENCIA(:P_NPERIODO_PROCESO, :P_NIDREGIMEN, :P_NIDGRUPOSENAL, :P_CLIENT, 
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_UPD_COINCIDENCIA(:P_NPERIODO_PROCESO, :P_NIDGRUPOSENAL, :P_CLIENT, 
                         :P_NIDUSUARIO, :P_NTIPOCARGA, :P_NCODE, :P_SMESSAGE);
                     END;
                     ";
@@ -962,11 +960,12 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.Varchar2, item.periodId, ParameterDirection.Input);
                 OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Varchar2, item.tipoCargaId, ParameterDirection.Input);
                 OracleParameter P_NIDGRUPOSENAL = new OracleParameter("P_NIDGRUPOSENAL", OracleDbType.Varchar2, item.grupoSenalId, ParameterDirection.Input);
+                OracleParameter P_SIDCLIENTE = new OracleParameter("P_SIDCLIENTE", OracleDbType.Varchar2, item.sClient, ParameterDirection.Input);
                 OracleParameter P_LISTA = new OracleParameter("P_LISTA", OracleDbType.RefCursor, System.Data.ParameterDirection.Output);
-                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NTIPOCARGA, P_NIDGRUPOSENAL, P_LISTA };
+                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NTIPOCARGA, P_NIDGRUPOSENAL, P_SIDCLIENTE, P_LISTA };
                 var query = @"
                     BEGIN
-                        LAFT.PKG_LAFT_GESTION_ALERTAS_GS.GETCLIENTSXGROUP(:P_NPERIODO_PROCESO, :P_NTIPOCARGA, :P_NIDGRUPOSENAL, :P_LISTA);
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.GETCLIENTSXGROUP(:P_NPERIODO_PROCESO, :P_NTIPOCARGA, :P_NIDGRUPOSENAL,:P_SIDCLIENTE, :P_LISTA);
                     END;
                     ";
                 this.context.Database.OpenConnection();

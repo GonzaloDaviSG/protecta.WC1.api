@@ -876,7 +876,7 @@ namespace protecta.WC1.api.Services
                 }
                 if (_response.nCode == 0)
                 {
-                    //_response = _repository.spcarga_coincidencias(item);
+                    _response = _repository.spcarga_coincidencias(item);
                 }
                 return _response;
             }
@@ -901,6 +901,7 @@ namespace protecta.WC1.api.Services
                 item.tipo = isruc ? "ORGANISATION" : "INDIVIDUAL";
             }
             _response.sStatus = "NOT FOUND";
+            _response.nCode = 0;
             bool isCreate = false;
             await Task.Run(() =>
             {
@@ -989,6 +990,7 @@ namespace protecta.WC1.api.Services
                                 items[i].primaryName = this.formatearNombre(items[i].primaryName.Replace(',', ' ').Split(' '));
                                 response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId, biography);
                                 _response.sMessage = response.sMessage;
+                                _response.nCode = response.nCode;
                             }
                         }
                     }
