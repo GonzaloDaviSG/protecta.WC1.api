@@ -849,16 +849,19 @@ namespace protecta.WC1.api.Services
         }
         public async Task<ResponseDTO> getClients(ResquestAlert item)
         {
+            List<ResponseDTO> _responses = new List<ResponseDTO>();
             ResponseDTO _response = new ResponseDTO();
+            ResponseDTO _responsereturn = new ResponseDTO();
             _repository.deleteCoincidenciastmp(item.periodId);
             List<Dictionary<string, dynamic>> items = new List<Dictionary<string, dynamic>>();
             try
             {
                 if (item.tipoCargaId == "1")
                 {
-                    for (int j = 0; j < records.Count; j++)
+                    List<Dictionary<string, dynamic>> grupos = _repository.GetGrupoSenal();
+                    for (int j = 0; j < grupos.Count; j++)
                     {
-                        item.grupoSenalId = records[j].ToString();
+                        item.grupoSenalId = grupos[j]["NIDGRUPOSENAL"].ToString();
                         item.items = _repository.getClientsForGroups(item);
                         List<string> names = item.items.Select(t => t["name"]).Distinct().ToList();
                         if (names.Count > 0)
@@ -866,6 +869,7 @@ namespace protecta.WC1.api.Services
                             for (int i = 0; i < names.Count; i++)
                             {
                                 _response = await searchCoincidence(item, names[i]);
+                                _responses.Add(_response);
                             }
                         }
                     }
@@ -873,12 +877,23 @@ namespace protecta.WC1.api.Services
                 else
                 {
                     _response = await searchCoincidence(item);
+                    _responses.Add(_response);
                 }
                 if (_response.nCode == 0)
                 {
                     _response = _repository.spcarga_coincidencias(item);
                 }
-                return _response;
+                int notFountCount = _responses.FindAll(t => t.sMessage == "NOT FOUND").Count;
+                if (_responses.Count == notFountCount)
+                {
+                    _responsereturn.nCode = 0;
+                    _responsereturn.sMessage = "No encontro coincidencia";
+                }
+                else {
+                    _responsereturn.nCode = 0;
+                    _responsereturn.sMessage = "Si encontro coincidencia";
+                }
+                return _responsereturn;
             }
             catch (Exception ex)
             {

@@ -13,6 +13,8 @@ namespace protecta.WC1.api.DTO
     {
         [DataMember]
         public string grupoSenalId { get; set; }
+        [DataMember]
+        public string grupoSubSenalId { get; set; }
 
         [DataMember]
         public string name { get; set; }

@@ -621,14 +621,15 @@ namespace protecta.WC1.api.Repository
                         OracleParameter P_SCASEID = new OracleParameter("P_SCASEID", OracleDbType.NVarchar2, caseId, System.Data.ParameterDirection.Input);
                         OracleParameter P_SCLIENT = new OracleParameter("P_SCLIENT", OracleDbType.NVarchar2, item.sClient, System.Data.ParameterDirection.Input);
                         OracleParameter P_NIDGRUPOSENAL = new OracleParameter("P_NIDGRUPOSENAL", OracleDbType.Int32, item.grupoSenalId, System.Data.ParameterDirection.Input);
+                        OracleParameter P_NIDSUBGRUPOSEN = new OracleParameter("P_NIDSUBGRUPOSEN", OracleDbType.Int32, item.grupoSubSenalId, System.Data.ParameterDirection.Input);
                         OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                         OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
                         OracleParameter[] parameters = new OracleParameter[] {  P_NPERIODO_PROCESO, P_NIDRESULTADO, P_NMACHTSTRENGTHVALUE, P_NIDTIPOLISTA,
-                        P_SORIGEN,P_SNOM_COMPLETO,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_SCARGO_PEP_EXTERNO,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID,P_SCLIENT,P_NIDGRUPOSENAL, P_NCODE, P_SMESSAGE };
+                        P_SORIGEN,P_SNOM_COMPLETO,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_SCARGO_PEP_EXTERNO,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID,P_SCLIENT,P_NIDGRUPOSENAL,P_NIDSUBGRUPOSEN, P_NCODE, P_SMESSAGE };
                         var query = @"
                     BEGIN
                         LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_RESULT_COINCIDENCIA( :P_NPERIODO_PROCESO, :P_NIDRESULTADO,:P_NMACHTSTRENGTHVALUE, :P_NIDTIPOLISTA,
-                        :P_SORIGEN,:P_SNOM_COMPLETO,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_SCARGO_PEP_EXTERNO,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_SCLIENT,:P_NIDGRUPOSENAL, :P_NCODE, :P_SMESSAGE);
+                        :P_SORIGEN,:P_SNOM_COMPLETO,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_SCARGO_PEP_EXTERNO,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_SCLIENT,:P_NIDGRUPOSENAL,:P_NIDSUBGRUPOSEN, :P_NCODE, :P_SMESSAGE);
                     END;
                     ";
                         this.context.Database.OpenConnection();
@@ -952,6 +953,38 @@ namespace protecta.WC1.api.Repository
         }
 
 
+        public List<Dictionary<string, dynamic>> GetGrupoSenal()
+        {
+            var lista = new List<Dictionary<string, dynamic>>();
+            try
+            {
+                var RC1 = new OracleParameter("RC1", OracleDbType.RefCursor, ParameterDirection.Output);
+                var parameters = new OracleParameter[] { RC1 };
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_GESTION_ALERTAS.SP_GET_GRUPO_SENAL(:RC1);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+                var odr = ((OracleRefCursor)RC1.Value).GetDataReader();
+                while (odr.Read())
+                {
+                    var item = new Dictionary<string, dynamic>();
+                    item["NIDGRUPOSENAL"] = odr["NIDGRUPOSENAL"];
+                    item["SDESGRUPO_SENAL"] = odr["SDESGRUPO_SENAL"];
+                    lista.Add(item);
+                }
+                odr.Close();
+                this.context.Database.CloseConnection();
+            }
+            catch (Exception ex)
+            {
+                this.context.Database.CloseConnection();
+                throw ex;
+            }
+            return lista;
+        }
         internal List<Dictionary<string, string>> getClientsForGroups(ResquestAlert item)
         {
             List<Dictionary<string, string>> List = new List<Dictionary<string, string>>();
@@ -960,12 +993,13 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.Varchar2, item.periodId, ParameterDirection.Input);
                 OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Varchar2, item.tipoCargaId, ParameterDirection.Input);
                 OracleParameter P_NIDGRUPOSENAL = new OracleParameter("P_NIDGRUPOSENAL", OracleDbType.Varchar2, item.grupoSenalId, ParameterDirection.Input);
+                OracleParameter P_NIDSUBGRUPOSEN = new OracleParameter("P_NIDSUBGRUPOSEN", OracleDbType.Int32, item.grupoSubSenalId, System.Data.ParameterDirection.Input);
                 OracleParameter P_SIDCLIENTE = new OracleParameter("P_SIDCLIENTE", OracleDbType.Varchar2, item.sClient, ParameterDirection.Input);
                 OracleParameter P_LISTA = new OracleParameter("P_LISTA", OracleDbType.RefCursor, System.Data.ParameterDirection.Output);
-                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NTIPOCARGA, P_NIDGRUPOSENAL, P_SIDCLIENTE, P_LISTA };
+                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NTIPOCARGA, P_NIDGRUPOSENAL, P_NIDSUBGRUPOSEN, P_SIDCLIENTE, P_LISTA };
                 var query = @"
                     BEGIN
-                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.GETCLIENTSXGROUP(:P_NPERIODO_PROCESO, :P_NTIPOCARGA, :P_NIDGRUPOSENAL,:P_SIDCLIENTE, :P_LISTA);
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.GETCLIENTSXGROUP(:P_NPERIODO_PROCESO, :P_NTIPOCARGA, :P_NIDGRUPOSENAL, :P_NIDSUBGRUPOSEN,:P_SIDCLIENTE, :P_LISTA);
                     END;
                     ";
                 this.context.Database.OpenConnection();
