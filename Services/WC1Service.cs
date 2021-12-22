@@ -686,6 +686,7 @@ namespace protecta.WC1.api.Services
                     _item = new Dictionary<string, dynamic>();
                     _item["SNOMBRE_COMPLETO"] = items[i].primaryName;
                     _item["SNOMBRE_BUSQUEDA"] = item["SNOMBRE_COMPLETO"];
+                    _item["SNOMBRE_TERMINO"] = items[i].matchedTerm.ToString();
                     if (items[i].categories.Count > 0)
                     {
                         _item["SLISTA"] = items[i].categories.Distinct().ToString() == "PEP" ? "LISTAS PEP" : "LISTAS INTERNACIONALES";
@@ -702,12 +703,12 @@ namespace protecta.WC1.api.Services
                         {
                             if (items[i].identityDocuments[j].locationType.type.Contains("RUC"))
                             {
-                                _item["SNUM_DOCUMENTO"] = items[i].identityDocuments[j].number.Length == 11 ? "0" : items[i].identityDocuments[j].number;
+                                _item["SNUM_DOCUMENTO"] = items[i].identityDocuments[j].number.Length == 11 ? items[i].identityDocuments[j].number : "-";
                                 _item["STIPO_DOCUMENTO"] = "RUC";
                             }
                             else if (items[i].identityDocuments[j].locationType.type.Contains("DNI"))
                             {
-                                _item["SNUM_DOCUMENTO"] = items[i].identityDocuments[j].number.Length == 8 ? "0" : items[i].identityDocuments[j].number;
+                                _item["SNUM_DOCUMENTO"] = items[i].identityDocuments[j].number.Length == 8 ? items[i].identityDocuments[j].number : items[i].identityDocuments[j].number.Length == 7 ? "0" + items[i].identityDocuments[j].number : "-";
                                 _item["STIPO_DOCUMENTO"] = "DNI";
                             }
                         }
@@ -883,15 +884,15 @@ namespace protecta.WC1.api.Services
                 {
                     _response = _repository.spcarga_coincidencias(item);
                 }
-                int notFountCount = _responses.FindAll(t => t.sMessage == "NOT FOUND").Count;
-                if (_responses.Count == notFountCount)
+                int fountCount = _responses.FindAll(t => t.sStatus != "NOT FOUND").Count;
+                if (fountCount > 0 )
                 {
                     _responsereturn.nCode = 0;
-                    _responsereturn.sMessage = "No encontro coincidencia";
+                    _responsereturn.sMessage = "Si encontro coincidencia";
                 }
                 else {
                     _responsereturn.nCode = 0;
-                    _responsereturn.sMessage = "Si encontro coincidencia";
+                    _responsereturn.sMessage = "No encontro coincidencia";
                 }
                 return _responsereturn;
             }
