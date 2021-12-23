@@ -120,6 +120,12 @@ namespace protecta.WC1.api.Services
             } while (response == "429");
             return response;
         }
+
+        internal Task<ResponseDTO> GetCoincidenceMassive(ResquestAlert item)
+        {
+            throw new NotImplementedException();
+        }
+
         private string confirmCase(string caseId)
         {
             string sMethod = $"caseReferences";
