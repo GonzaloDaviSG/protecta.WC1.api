@@ -147,9 +147,36 @@ namespace protecta.WC1.api.Controllers
             return taskA.Result;
 
         }
+        [Route("getClientsAutomatic")]
+        [HttpPost]
+        public async Task<ResponseDTO> getClientsAutomatic(ResquestAlert item)
+        {
+            ResponseDTO response = new ResponseDTO();
+            Task<ResponseDTO> taskA = null;
+            try
+            {
+                taskA = Task.Run(async () =>
+                {
+                    return await new WC1Service().getClientsAutomatic(item);
+                });
+                taskA.Wait();
+            }
+            catch (Exception ex)
+            {
+                taskA = Task.Run(() =>
+                {
+                    response.sMessage = "Comuniquese con el Administrador";
+                    response.sStatus = "ERROR";
+                    response.nCode = 1;
+                    return response;
+                });
+            }
+            return taskA.Result;
+
+        }
         [Route("GetCoincidenceMassive")]
         [HttpPost]
-        public async Task<ResponseDTO> GetDemandaSearch(ResquestAlert item)
+        public async Task<ResponseDTO> GetCoincidenceMassive(ResquestAlert item)
         {
             ResponseDTO response = new ResponseDTO();
             Task<ResponseDTO> taskA = null;
@@ -157,7 +184,7 @@ namespace protecta.WC1.api.Controllers
             {
                 taskA = Task.Run(() =>
                 {
-                    return new WC1Service().GetDemandaSearch(item);
+                    return new WC1Service().GetCoincidenceMassive(item);
                 });
                 taskA.Wait();
 

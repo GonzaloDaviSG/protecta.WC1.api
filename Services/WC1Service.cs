@@ -22,6 +22,7 @@ namespace protecta.WC1.api.Services
 {
     public class WC1Service
     {
+        log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public List<String> ValidPorcentage;
         public List<String> ValidPorcentageDemanda;
         WC1Repository _repository;
@@ -376,11 +377,7 @@ namespace protecta.WC1.api.Services
         }
         internal async Task<ListResponseDTO> getCoincidenceNotPep(ResquestAlert item)
         {
-            Stopwatch sw = new Stopwatch();
-            Stopwatch petition = new Stopwatch();
-
-            sw.Start();
-
+            log.Info("entro");
             ListResponseDTO response = new ListResponseDTO();
             if (String.IsNullOrWhiteSpace(item.name))
             {
@@ -402,50 +399,48 @@ namespace protecta.WC1.api.Services
                 try
                 {
                     objDefault.name = item.name;
-                    petition.Start();
                     string result = createCase(objDefault);
-                    petition.Stop();
-                    dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
-                    items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((obj.results).ToString());
-                    items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
-                    for (int i = 0; i < items.Count; i++)
+                    if (result != "")
                     {
-                        DataEntity dataitem = new DataEntity();
-                        if (items[i].categories.Contains("PEP"))
+                        dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
+                        items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((obj.results).ToString());
+                        items = items.Where(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED")).ToList();
+                        for (int i = 0; i < items.Count; i++)
                         {
-                            response.isPep = true;
-                            dataitem.name = items[i].matchedTerm;
-                            dataitem.percentage = getPorcentaje(items[i].matchStrength);
-                            List<IdentityDocuments> _items = items[i].identityDocuments.FindAll(t => t.type == "DNI");
-                            if (_items.Count > 0)
+                            DataEntity dataitem = new DataEntity();
+                            if (items[i].categories.Contains("PEP"))
                             {
-                                dataitem.documentNumber = _items[0].number;
-                                dataitem.documentType = _items[0].type;
+                                response.isPep = true;
+                                dataitem.name = items[i].matchedTerm;
+                                dataitem.percentage = getPorcentaje(items[i].matchStrength);
+                                List<IdentityDocuments> _items = items[i].identityDocuments.FindAll(t => t.type == "DNI");
+                                if (_items.Count > 0)
+                                {
+                                    dataitem.documentNumber = _items[0].number;
+                                    dataitem.documentType = _items[0].type;
+                                }
+                                response.Data.Add(dataitem);
                             }
-                            response.Data.Add(dataitem);
-                        }
-                        else
-                            if (getPorcentaje(items[i].matchStrength) == 100)
-                            response.isOtherList = true;
-                        if (item.idDocNumber != "")
-                            if (!response.isIdNumber)
-                                response.isIdNumber = items[i].identityDocuments.Exists(t => t.number == item.idDocNumber);
+                            else
+                                if (getPorcentaje(items[i].matchStrength) == 100)
+                                response.isOtherList = true;
+                            if (item.idDocNumber != "")
+                                if (!response.isIdNumber)
+                                    response.isIdNumber = items[i].identityDocuments.Exists(t => t.number == item.idDocNumber);
 
+                        }
+                    }
+                    else {
+                        log.Info("resultado  :" + result);
                     }
                 }
                 catch (Exception ex)
                 {
-                    throw;
+                    log.Info("Error  :" + ex.Message);
+                    throw ex;
                 }
             });
-
-            sw.Stop();
-            Console.Out.WriteLine("tiempo de peticion al servicio de WC");
-            Console.Out.WriteLine(petition.Elapsed);
-            Console.Out.WriteLine("tiempo logica");
-            Console.Out.WriteLine(sw.Elapsed - petition.Elapsed);
-            Console.Out.WriteLine("tiempo total del api");
-            Console.Out.WriteLine(sw.Elapsed);
+            log.Info("acabo");
             return response;
         }
         public int getPorcentaje(string termn)
@@ -875,6 +870,8 @@ namespace protecta.WC1.api.Services
                         {
                             for (int i = 0; i < names.Count; i++)
                             {
+                                bool isruc = item.items.FindAll(t => t["name"] == names[i]).Exists(t => t["tipo"] == "1");
+                                item.tipo = isruc ? "ORGANISATION" : "INDIVIDUAL";
                                 _response = await searchCoincidence(item, names[i]);
                                 _responses.Add(_response);
                             }
@@ -891,12 +888,13 @@ namespace protecta.WC1.api.Services
                     _response = _repository.spcarga_coincidencias(item);
                 }
                 int fountCount = _responses.FindAll(t => t.sStatus != "NOT FOUND").Count;
-                if (fountCount > 0 )
+                if (fountCount > 0)
                 {
                     _responsereturn.nCode = 0;
                     _responsereturn.sMessage = "Si encontro coincidencia";
                 }
-                else {
+                else
+                {
                     _responsereturn.nCode = 0;
                     _responsereturn.sMessage = "No encontro coincidencia";
                 }
@@ -911,17 +909,45 @@ namespace protecta.WC1.api.Services
             }
 
         }
+        public async Task<ResponseDTO> getClientsAutomatic(ResquestAlert item)
+        {
+            List<ResponseDTO> _responses = new List<ResponseDTO>();
+            ResponseDTO _response = new ResponseDTO();
+            ResponseDTO _responsereturn = new ResponseDTO();
+            try
+            {
+                _response = await searchCoincidence(item);
+                _responses.Add(_response);
+                if (_response.nCode == 0)
+                {
+                    _response = _repository.spcarga_coincidencias(item);
+                }
+                int fountCount = _responses.FindAll(t => t.sStatus != "NOT FOUND").Count;
+                if (fountCount > 0)
+                {
+                    _responsereturn.nCode = 0;
+                    _responsereturn.sMessage = "Si encontro coincidencia";
+                }
+                else
+                {
+                    _responsereturn.nCode = 0;
+                    _responsereturn.sMessage = "No encontro coincidencia";
+                }
+                return _responsereturn;
+            }
+            catch (Exception ex)
+            {
+                _response = new ResponseDTO();
+                _response.nCode = 1;
+                _response.sMessage = ex.Message;
+                return _response;
+            }
+        }
         public async Task<ResponseDTO> searchCoincidence(ResquestAlert item, dynamic name = null)
         {
             List<ObjCaseDTO> Case = new List<ObjCaseDTO>();
             ResponseDTO _response = new ResponseDTO();
             ResponseDTO response = new ResponseDTO();
-            if (item.tipoCargaId == "1")
-            {
-                item.name = name;
-                bool isruc = item.items.FindAll(t => t["name"] == name).Exists(t => t["tipo"] == "1");
-                item.tipo = isruc ? "ORGANISATION" : "INDIVIDUAL";
-            }
             _response.sStatus = "NOT FOUND";
             _response.nCode = 0;
             bool isCreate = false;
