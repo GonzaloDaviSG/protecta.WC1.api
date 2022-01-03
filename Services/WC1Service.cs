@@ -918,10 +918,6 @@ namespace protecta.WC1.api.Services
             {
                 _response = await searchCoincidence(item);
                 _responses.Add(_response);
-                if (_response.nCode == 0)
-                {
-                    _response = _repository.spcarga_coincidencias(item);
-                }
                 int fountCount = _responses.FindAll(t => t.sStatus != "NOT FOUND").Count;
                 if (fountCount > 0)
                 {
@@ -1015,7 +1011,7 @@ namespace protecta.WC1.api.Services
                     {
                         if (item.tipo != "ORGANISATION")
                             items = items.FindAll(t => t.secondaryFieldResults.Exists(t2 => t2.fieldResult == "MATCHED" && t2.typeId == "SFCT_5"));
-                        items = items.FindAll(t => ValidPorcentageDemanda.Contains(t.matchStrength));
+                        items = items.FindAll(t => ValidPorcentage.Contains(t.matchStrength));
                         System.Console.WriteLine("individuo :" + item.name + " cantidad :" + items.Count);
                         if (items.Count > 0)
                         {
