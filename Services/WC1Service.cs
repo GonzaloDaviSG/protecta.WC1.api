@@ -335,12 +335,17 @@ namespace protecta.WC1.api.Services
                                 _repository.SaveWebLinks(profile.weblinks[j], response.nId);
                     if (profile.details != null)
                         if (profile.details.Count > 0)
+                        {
+                            response.informacionComplementaria = new Dictionary<string, dynamic>();
                             for (int j = 0; j < profile.details.Count; j++)
                             {
                                 _repository.SaveDetail(profile.details[j], response.nId);
                                 if (profile.details[j].detailType == "REPORTS")
-                                    response.sMessage = profile.details[j].text;
+                                    response.informacionComplementaria["SINFORMACION"] = profile.details[j].text;
+                                if (profile.details[j].detailType == "BIOGRAPHY")
+                                    response.informacionComplementaria["SCARGO"] = profile.details[j].text;
                             }
+                        }
                 }
             }
             catch (Exception ex)
@@ -1027,12 +1032,14 @@ namespace protecta.WC1.api.Services
                             {
                                 _response.sStatus = isCreate ? "OK" : "UPDATE";
                                 string biography = "";
+                                string informacion = "";
                                 items[i].categories = items[i].categories.Distinct().ToList();
                                 response = this.SaveResult(items[i], caseSystemId);
-                                biography = response.sMessage;
+                                biography = response.informacionComplementaria["SCARGO"];
+                                informacion = response.informacionComplementaria["SINFORMACION"];
                                 items[i].matchedTerm = this.formatearNombre(items[i].matchedTerm.Replace(',', ' ').Split(' '));
                                 items[i].primaryName = this.formatearNombre(items[i].primaryName.Replace(',', ' ').Split(' '));
-                                response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId, biography);
+                                response = _repository.SaveResultCoincidencias(items[i], item, response.nId, caseSystemId, caseId, biography, informacion);
                                 _response.sMessage = response.sMessage;
                                 _response.nCode = response.nCode;
                             }

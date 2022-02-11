@@ -12,6 +12,7 @@ namespace protecta.WC1.api.DTO
         public string sMessage { get; set; }
         public string sStatus { get; set; }
         public List<string> data { get; set; }
+        public Dictionary<string, dynamic> informacionComplementaria { get; set; }
         public List<Dictionary<string, dynamic>> Items { get; set; }
     }
 }

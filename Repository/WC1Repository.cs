@@ -568,7 +568,7 @@ namespace protecta.WC1.api.Repository
             return respo;
         }
 
-        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId, string biography)
+        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId, string biography,string informacion = "")
         {
 
             ResponseDTO response = new ResponseDTO();
@@ -613,6 +613,7 @@ namespace protecta.WC1.api.Repository
                         OracleParameter P_SNUM_DOCUMENT = new OracleParameter("P_SNUM_DOCUMENT", OracleDbType.NVarchar2, documents[j]["number"], System.Data.ParameterDirection.Input);
                         OracleParameter P_STIPO_DOCUMENT = new OracleParameter("P_STIPO_DOCUMENT", OracleDbType.NVarchar2, documents[j]["type"], System.Data.ParameterDirection.Input);
                         OracleParameter P_SCARGO_PEP_EXTERNO = new OracleParameter("P_SCARGO_PEP_EXTERNO", OracleDbType.NVarchar2, biography, System.Data.ParameterDirection.Input);
+                        OracleParameter P_SREPORT_COINCIDENCE = new OracleParameter("P_SREPORT_COINCIDENCE", OracleDbType.NVarchar2, informacion, System.Data.ParameterDirection.Input);
 
                         OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int32, item.tipoCargaId, System.Data.ParameterDirection.Input);
                         OracleParameter P_SNOMBREBUSQUEDA = new OracleParameter("P_SNOMBREBUSQUEDA", OracleDbType.NVarchar2, responseWc1.submittedTerm, System.Data.ParameterDirection.Input);
@@ -622,14 +623,15 @@ namespace protecta.WC1.api.Repository
                         OracleParameter P_SCLIENT = new OracleParameter("P_SCLIENT", OracleDbType.NVarchar2, item.sClient, System.Data.ParameterDirection.Input);
                         OracleParameter P_NIDGRUPOSENAL = new OracleParameter("P_NIDGRUPOSENAL", OracleDbType.Int32, item.grupoSenalId, System.Data.ParameterDirection.Input);
                         OracleParameter P_NIDSUBGRUPOSEN = new OracleParameter("P_NIDSUBGRUPOSEN", OracleDbType.Int32, item.grupoSubSenalId, System.Data.ParameterDirection.Input);
+                        OracleParameter P_SMATCH_SCORE = new OracleParameter("P_SMATCH_SCORE", OracleDbType.NVarchar2, responseWc1.matchScore, System.Data.ParameterDirection.Input);
                         OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                         OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
                         OracleParameter[] parameters = new OracleParameter[] {  P_NPERIODO_PROCESO, P_NIDRESULTADO, P_NMACHTSTRENGTHVALUE, P_NIDTIPOLISTA,
-                        P_SORIGEN,P_SNOM_COMPLETO,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_SCARGO_PEP_EXTERNO,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID,P_SCLIENT,P_NIDGRUPOSENAL,P_NIDSUBGRUPOSEN, P_NCODE, P_SMESSAGE };
+                        P_SORIGEN,P_SNOM_COMPLETO,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_SCARGO_PEP_EXTERNO,P_SREPORT_COINCIDENCE,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID,P_SCLIENT,P_NIDGRUPOSENAL,P_NIDSUBGRUPOSEN,P_SMATCH_SCORE, P_NCODE, P_SMESSAGE };
                         var query = @"
                     BEGIN
                         LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_WC1_RESULT_COINCIDENCIA( :P_NPERIODO_PROCESO, :P_NIDRESULTADO,:P_NMACHTSTRENGTHVALUE, :P_NIDTIPOLISTA,
-                        :P_SORIGEN,:P_SNOM_COMPLETO,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_SCARGO_PEP_EXTERNO,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_SCLIENT,:P_NIDGRUPOSENAL,:P_NIDSUBGRUPOSEN, :P_NCODE, :P_SMESSAGE);
+                        :P_SORIGEN,:P_SNOM_COMPLETO,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_SCARGO_PEP_EXTERNO,:P_SREPORT_COINCIDENCE, :P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_SCLIENT,:P_NIDGRUPOSENAL,:P_NIDSUBGRUPOSEN,:P_SMATCH_SCORE, :P_NCODE, :P_SMESSAGE);
                     END;
                     ";
                         this.context.Database.OpenConnection();
