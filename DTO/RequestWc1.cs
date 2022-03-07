@@ -32,5 +32,7 @@ namespace protecta.WC1.api.DTO
         public string typeId { get; set; }
         [DataMember]
         public string value { get; set; }
+        [DataMember]
+        public string dateTimeValue { get; set; }
     }
 }

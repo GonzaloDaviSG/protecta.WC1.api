@@ -371,73 +371,6 @@ namespace protecta.WC1.api.Repository
         }
 
 
-        internal ResponseDTO deshabilitarResultado(string sCaseId)
-        {
-            ResponseDTO respo = new ResponseDTO();
-            try
-            {
-                OracleParameter P_SCASEID = new OracleParameter("P_SCASEID", OracleDbType.NVarchar2, sCaseId, System.Data.ParameterDirection.Input);
-                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
-                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
-                P_SMESSAGE.Size = 4000;
-                OracleParameter[] parameters = new OracleParameter[] { P_SCASEID, P_NCODE, P_SMESSAGE };
-                var query = @"
-                    BEGIN
-                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_INS_DESHABILITARCOINCIDENCIAS(:P_SCASEID, :P_NCODE, :P_SMESSAGE);
-                    END;
-                    ";
-                this.context.Database.OpenConnection();
-                this.context.Database.ExecuteSqlCommand(query, parameters);
-
-                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
-                respo.sMessage = P_SMESSAGE.Value.ToString();
-                this.context.Database.CloseConnection();
-
-                this.context.Database.CloseConnection();
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-
-            return respo;
-        }
-
-        internal ResponseDTO eliminarCoincidenciastemporales(ResquestAlert item)
-        {
-            ResponseDTO respo = new ResponseDTO();
-            try
-            {
-                //matchedNameType
-                OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.Int32, item.periodId, ParameterDirection.Input);
-                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
-                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
-
-                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NCODE, P_SMESSAGE };
-                var query = @"
-                    BEGIN
-                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_DEL_COINCIDENCIA_TEMP(:P_NPERIODO_PROCESO, :P_NCODE, :P_SMESSAGE);
-                    END;
-                    ";
-                P_NCODE.Size = 4000;
-                P_SMESSAGE.Size = 4000;
-                this.context.Database.OpenConnection();
-                this.context.Database.ExecuteSqlCommand(query, parameters);
-
-                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
-                respo.sMessage = P_SMESSAGE.Value.ToString();
-                this.context.Database.CloseConnection();
-
-                this.context.Database.CloseConnection();
-                return respo;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
         internal ResponseDTO SaveProfile(ResponseProfileDTO item, string resulId, int id)
         {
             ResponseDTO respo = new ResponseDTO();
@@ -495,9 +428,9 @@ namespace protecta.WC1.api.Repository
             }
         }
 
-        internal List<Dictionary<string, dynamic>> getDemandas(string codBusqueda)
+        internal List<ResquestAlert> getDemandas(string codBusqueda)
         {
-            List<Dictionary<string, dynamic>> items = new List<Dictionary<string, dynamic>>();
+            List<ResquestAlert> items = new List<ResquestAlert>();
             try
             {
 
@@ -515,9 +448,10 @@ namespace protecta.WC1.api.Repository
                         reader = cmd.ExecuteReader();
                         while (reader.Read())
                         {
-                            Dictionary<string, dynamic> item = new Dictionary<string, dynamic>();
-                            item["SNOMBRE_COMPLETO"] = reader["SNOMBRE_COMPLETO"].ToString();
-                            item["STIPO_DOCUMENTO"] = reader["STIPO_DOCUMENTO"].ToString();
+                            ResquestAlert item = new ResquestAlert();
+                            item.name = reader["SNOMBRE_COMPLETO"].ToString();
+                            item.typeDocument = reader["STIPO_DOCUMENTO"].ToString();
+                            item.idDocNumber = reader["SNUM_DOCUMENTO"].ToString();
                             items.Add(item);
                         }
                         cn.Close();
@@ -790,170 +724,7 @@ namespace protecta.WC1.api.Repository
                 throw ex;
             }
         }
-
-        internal List<ObjCaseDTO> getCaseJD(string name)
-        {
-            List<ObjCaseDTO> List = new List<ObjCaseDTO>();
-            try
-            {
-                //matchedNameType
-                OracleParameter P_SNAME = new OracleParameter("P_SNAME", OracleDbType.Varchar2, name, ParameterDirection.Input);
-                OracleParameter P_LISTCASEID = new OracleParameter("P_LISTCASEID", OracleDbType.RefCursor, System.Data.ParameterDirection.Output);
-                OracleParameter[] parameters = new OracleParameter[] { P_SNAME, P_LISTCASEID };
-                var query = @"
-                    BEGIN
-                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1_JD.SP_GET_EXIST_CASE(:P_SNAME, :P_LISTCASEID);
-                    END;
-                    ";
-                this.context.Database.OpenConnection();
-                this.context.Database.ExecuteSqlCommand(query, parameters);
-                OracleDataReader odr = ((OracleRefCursor)P_LISTCASEID.Value).GetDataReader();
-                while (odr.Read())
-                {
-                    ObjCaseDTO item = new ObjCaseDTO();
-                    item.SCaseId = odr["SCASEID"].ToString();
-                    item.SCaseSystemId = odr["SCASESYSTEMID"].ToString();
-                    List.Add(item);
-                }
-                odr.Close();
-                this.context.Database.CloseConnection();
-                return List;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
-        public ResponseDTO SaveResultJD(ResponseWc1 item, string SystemCaseId)
-        {
-            ResponseDTO respo = new ResponseDTO();
-            try
-            {
-                //matchedNameType
-                OracleParameter P_SSYSTEMCASEID = new OracleParameter("P_SSYSTEMCASEID", OracleDbType.NVarchar2, SystemCaseId, ParameterDirection.Input);
-                OracleParameter P_SRESULTID = new OracleParameter("P_SRESULTID", OracleDbType.NVarchar2, item.resultId, ParameterDirection.Input);
-                OracleParameter P_SREFERENCEID = new OracleParameter("P_SREFERENCEID", OracleDbType.NVarchar2, item.referenceId, ParameterDirection.Input);
-                OracleParameter P_SMATCHSTRENGTH = new OracleParameter("P_SMATCHSTRENGTH", OracleDbType.NVarchar2, item.matchStrength, ParameterDirection.Input);
-                OracleParameter P_SMATCHEDTERM = new OracleParameter("P_SMATCHEDTERM", OracleDbType.NVarchar2, item.matchedTerm, ParameterDirection.Input);
-                OracleParameter P_SSUBMITTEDTERM = new OracleParameter("P_SSUBMITTEDTERM", OracleDbType.NVarchar2, item.submittedTerm, ParameterDirection.Input);
-                OracleParameter P_SMATCHEDNAMETYPE = new OracleParameter("P_SMATCHEDNAMETYPE", OracleDbType.NVarchar2, item.matchedNameType, ParameterDirection.Input);
-                OracleParameter P_SCREATIONDATE = new OracleParameter("P_SCREATIONDATE", OracleDbType.NVarchar2, item.creationDate, ParameterDirection.Input);
-                OracleParameter P_SMODIFICATIONDATE = new OracleParameter("P_SMODIFICATIONDATE", OracleDbType.NVarchar2, item.modificationDate, ParameterDirection.Input);
-                OracleParameter P_SRESOLUTION = new OracleParameter("P_SRESOLUTION", OracleDbType.NVarchar2, item.resolution, ParameterDirection.Input);
-                OracleParameter P_SPRIMARYNAME = new OracleParameter("P_SPRIMARYNAME", OracleDbType.NVarchar2, item.primaryName, ParameterDirection.Input);
-                OracleParameter P_SCATEGORY = new OracleParameter("P_SCATEGORY", OracleDbType.NVarchar2, item.category, ParameterDirection.Input);
-                OracleParameter P_SPROVIDERTYPE = new OracleParameter("P_SPROVIDERTYPE", OracleDbType.NVarchar2, item.providerType, ParameterDirection.Input);
-                OracleParameter P_SGENDER = new OracleParameter("P_SGENDER", OracleDbType.NVarchar2, item.gender, ParameterDirection.Input);
-
-                OracleParameter P_NID_COINCIDENCIA = new OracleParameter("P_NID_COINCIDENCIA", OracleDbType.Int32, System.Data.ParameterDirection.Output);
-                OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
-                OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
-
-                OracleParameter[] parameters = new OracleParameter[] { P_SSYSTEMCASEID, P_SRESULTID, P_SREFERENCEID, P_SMATCHSTRENGTH , P_SMATCHEDTERM, P_SSUBMITTEDTERM,
-                P_SMATCHEDNAMETYPE, P_SCREATIONDATE ,P_SMODIFICATIONDATE ,P_SRESOLUTION , P_SPRIMARYNAME , P_SCATEGORY , P_SPROVIDERTYPE, P_SGENDER,
-                P_NID_COINCIDENCIA, P_NCODE, P_SMESSAGE};
-                var query = @"
-                    BEGIN
-                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1_JD.SP_INS_WC1_COINCIDENCIA(:P_SSYSTEMCASEID, :P_SRESULTID, :P_SREFERENCEID, :P_SMATCHSTRENGTH, :P_SMATCHEDTERM, :P_SSUBMITTEDTERM, 
-                        :P_SMATCHEDNAMETYPE, :P_SCREATIONDATE, :P_SMODIFICATIONDATE, :P_SRESOLUTION, :P_SPRIMARYNAME, :P_SCATEGORY, :P_SPROVIDERTYPE, :P_SGENDER,
-                        :P_NID_COINCIDENCIA, :P_NCODE, :P_SMESSAGE);
-                    END;
-                    ";
-                this.context.Database.OpenConnection();
-                this.context.Database.ExecuteSqlCommand(query, parameters);
-
-                respo.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
-                respo.nId = Convert.ToInt32(P_NID_COINCIDENCIA.Value.ToString());
-                respo.sMessage = P_SMESSAGE.Value.ToString();
-                this.context.Database.CloseConnection();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-
-            return respo;
-        }
-
-        internal ResponseDTO SaveResultCoincidenciasJD(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId, string biography)
-        {
-
-            ResponseDTO response = new ResponseDTO();
-            for (int i = 0; i < responseWc1.categories.Count; i++)
-            {
-                List<Dictionary<string, dynamic>> documents = new List<Dictionary<string, dynamic>>();
-                if (responseWc1.identityDocuments.Count > 0)
-                {
-                    Dictionary<string, dynamic> doc;
-                    for (int j = 0; j < responseWc1.identityDocuments.Count; j++)
-                    {
-                        doc = new Dictionary<string, dynamic>();
-                        doc["number"] = responseWc1.identityDocuments[j].number.Length > 11 ? "0" : responseWc1.identityDocuments[j].number;
-                        doc["type"] = responseWc1.identityDocuments[j].locationType.type.Contains("DNI") ? "DNI" : responseWc1.identityDocuments[j].locationType.type.Contains("RUC") ? "RUC" : "";
-                        documents.Add(doc);
-                    }
-                }
-                else
-                {
-                    Dictionary<string, dynamic> doc = new Dictionary<string, dynamic>();
-                    doc["number"] = "0";
-                    doc["type"] = "XX";
-                    documents.Add(doc);
-                }
-                String[] palabras = responseWc1.matchedTerm.Split(' ');
-                for (int j = 0; j < documents.Count; j++)
-                {
-                    try
-                    {
-                        int category = responseWc1.categories[i] == "PEP" ? 2 : 1;
-                        int valorPorcentaje = responseWc1.matchStrength == "WEAK" ? 25 : responseWc1.matchStrength == "MEDIUM" ? 50 : responseWc1.matchStrength == "STRONG" ? 75 : responseWc1.matchStrength == "EXACT" ? 100 : 0;
-                        //OracleParameter P_NIDALERTA = new OracleParameter("P_NIDALERTA", OracleDbType.Int32, int.Parse(item.alertId), System.Data.ParameterDirection.Input);
-                        OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.Int32, int.Parse(item.periodId), System.Data.ParameterDirection.Input);
-                        OracleParameter P_NIDRESULTADO = new OracleParameter("P_NIDRESULTADO", OracleDbType.Int32, id, System.Data.ParameterDirection.Input);
-                        //OracleParameter P_SMACHTSTRENGTH = new OracleParameter("P_SMACHTSTRENGTH", OracleDbType.NVarchar2, responseWc1.matchStrength, System.Data.ParameterDirection.Input);
-                        OracleParameter P_NMACHTSTRENGTHVALUE = new OracleParameter("P_NMACHTSTRENGTHVALUE", OracleDbType.Int32, valorPorcentaje, System.Data.ParameterDirection.Input);
-                        OracleParameter P_NIDTIPOLISTA = new OracleParameter("P_NIDTIPOLISTA", OracleDbType.Int32, category, System.Data.ParameterDirection.Input);
-                        OracleParameter P_SORIGEN = new OracleParameter("P_SORIGEN", OracleDbType.NVarchar2, responseWc1.categories[i], System.Data.ParameterDirection.Input);
-
-                        OracleParameter P_SNOM_COMPLETO = new OracleParameter("P_SNOM_COMPLETO", OracleDbType.NVarchar2, responseWc1.primaryName.Trim().ToUpper(), System.Data.ParameterDirection.Input);
-                        OracleParameter P_SMATCHEDTERM = new OracleParameter("P_SMATCHEDTERM", OracleDbType.NVarchar2, responseWc1.matchedTerm.Trim().ToUpper(), System.Data.ParameterDirection.Input);
-                        OracleParameter P_SNUM_DOCUMENT = new OracleParameter("P_SNUM_DOCUMENT", OracleDbType.NVarchar2, documents[j]["number"], System.Data.ParameterDirection.Input);
-                        OracleParameter P_STIPO_DOCUMENT = new OracleParameter("P_STIPO_DOCUMENT", OracleDbType.NVarchar2, documents[j]["type"], System.Data.ParameterDirection.Input);
-                        OracleParameter P_SCARGO_PEP_EXTERNO = new OracleParameter("P_SCARGO_PEP_EXTERNO", OracleDbType.NVarchar2, biography, System.Data.ParameterDirection.Input);
-
-                        OracleParameter P_NTIPOCARGA = new OracleParameter("P_NTIPOCARGA", OracleDbType.Int32, 1, System.Data.ParameterDirection.Input);
-                        OracleParameter P_SNOMBREBUSQUEDA = new OracleParameter("P_SNOMBREBUSQUEDA", OracleDbType.NVarchar2, responseWc1.submittedTerm, System.Data.ParameterDirection.Input);
-
-                        OracleParameter P_SCASESYSTEMID = new OracleParameter("P_SCASESYSTEMID", OracleDbType.NVarchar2, caseSystemId, System.Data.ParameterDirection.Input);
-                        OracleParameter P_SCASEID = new OracleParameter("P_SCASEID", OracleDbType.NVarchar2, caseId, System.Data.ParameterDirection.Input);
-                        OracleParameter P_SCLIENT = new OracleParameter("P_SCLIENT", OracleDbType.NVarchar2, "", System.Data.ParameterDirection.Input);
-                        OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
-                        OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
-                        OracleParameter[] parameters = new OracleParameter[] {  P_NPERIODO_PROCESO, P_NIDRESULTADO, P_NMACHTSTRENGTHVALUE, P_NIDTIPOLISTA,
-                        P_SORIGEN,P_SNOM_COMPLETO,P_SMATCHEDTERM,P_SNUM_DOCUMENT,P_STIPO_DOCUMENT,P_SCARGO_PEP_EXTERNO,P_NTIPOCARGA,P_SNOMBREBUSQUEDA,P_SCASESYSTEMID,P_SCASEID,P_SCLIENT, P_NCODE, P_SMESSAGE };
-                        var query = @"
-                    BEGIN
-                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1_JD.SP_INS_WC1_RESULT_COINCIDENCIA( :P_NPERIODO_PROCESO, :P_NIDRESULTADO,:P_NMACHTSTRENGTHVALUE, :P_NIDTIPOLISTA,
-                        :P_SORIGEN,:P_SNOM_COMPLETO,:P_SMATCHEDTERM,:P_SNUM_DOCUMENT,:P_STIPO_DOCUMENT,:P_SCARGO_PEP_EXTERNO,:P_NTIPOCARGA, :P_SNOMBREBUSQUEDA, :P_SCASESYSTEMID, :P_SCASEID, :P_SCLIENT, :P_NCODE, :P_SMESSAGE);
-                    END;
-                    ";
-                        this.context.Database.OpenConnection();
-                        this.context.Database.ExecuteSqlCommand(query, parameters);
-
-                        response.nCode = Convert.ToInt32(P_NCODE.Value.ToString());
-                        response.sMessage = P_SMESSAGE.Value.ToString();
-                        this.context.Database.CloseConnection();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw ex;
-                    }
-                }
-            }
-            return response;
-        }
-
+        
 
         public List<Dictionary<string, dynamic>> GetGrupoSenal()
         {

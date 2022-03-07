@@ -22,5 +22,6 @@ namespace protecta.WC1.api.DTO
         public string documentType { get; set; }
         public string documentNumber { get; set; }
         public int percentage { get; set; }
+        public double percentageScore { get; set; }
     }
 }

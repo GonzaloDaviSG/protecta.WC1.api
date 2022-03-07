@@ -64,34 +64,7 @@ namespace protecta.WC1.api.Controllers
             return Ok(new WC1Service().procesoCoincidencia());
         }
 
-        [Route("alertsprocess")]
-        [HttpPost]
-        public async Task<ResponseDTO> alertsProcess(ResquestAlert item)
-        {
-            ResponseDTO response = new ResponseDTO();
-            Task<ResponseDTO> taskA = null;
-            try
-            {
-                taskA = Task.Run(() =>
-                {
-                    return new WC1Service().alertsProcess(item);
-                });
-                taskA.Wait();
-                
-            }
-            catch (Exception ex)
-            {
-                taskA = Task.Run(() =>
-                {
-                    response.sMessage = "Comuniquese con el Administrador";
-                    response.sStatus = "ERROR";
-                    response.nCode = 1;
-                    return response;
-                });
-            }
-            return taskA.Result;
-
-        }
+     
         [Route("GetDemandaSearch")]
         [HttpPost]
         public async Task<ResponseDTO> GetDemandaSearch(ResquestAlert item)
@@ -202,34 +175,6 @@ namespace protecta.WC1.api.Controllers
             return taskA.Result;
 
         }
-        [Route("alertsprocessJD")]
-        [HttpPost]
-        public async Task<ResponseDTO> alertsProcessJD(ResquestAlert item)
-        {
-            ResponseDTO response = new ResponseDTO();
-            Task<ResponseDTO> taskA = null;
-            try
-            {
-                taskA = Task.Run(() =>
-                {
-                    return new WC1Service().alertsProcessJD(item);
-                });
-                taskA.Wait();
-
-            }
-            catch (Exception ex)
-            {
-                taskA = Task.Run(() =>
-                {
-                    response.sMessage = "Comuniquese con el Administrador";
-                    response.sStatus = "ERROR";
-                    response.nCode = 1;
-                    return response;
-                });
-            }
-            return taskA.Result;
-
-        }
 
         [Route("getCoincidenceNotPep")]
         [HttpPost]
@@ -243,6 +188,12 @@ namespace protecta.WC1.api.Controllers
         public ActionResult getProfiles(string referenceId)
         {
             return Ok(new WC1Service().getProfiles(referenceId));
+        }
+        [Route("validarDni")]
+        [HttpGet("validarDni/{dni}")]
+        public ActionResult validarDni(string dni)
+        {
+            return Ok(new WC1Service().validarDni(dni));
         }
         //[Route("getPrueba")]
         //[HttpGet]
