@@ -90,6 +90,9 @@ namespace protecta.WC1.api.Controllers
                     return response;
                 });
             }
+            response = taskA.Result;
+            response.code = response.nCode;
+            response.mensaje = response.sMessage.ToString();
             return taskA.Result;
 
         }
@@ -195,11 +198,12 @@ namespace protecta.WC1.api.Controllers
         {
             return Ok(new WC1Service().validarDni(dni));
         }
-        //[Route("getPrueba")]
-        //[HttpGet]
-        //public ActionResult Prueba()
-        //{
-        //    return Ok(new WC1Service().getprueba());
-        //}
+
+        [Route("deleteCases")]
+        [HttpGet]
+        public async Task<IActionResult> deteleCases()
+        {
+            return Ok(await new WC1Service().deleteCases());
+        }
     }
 }

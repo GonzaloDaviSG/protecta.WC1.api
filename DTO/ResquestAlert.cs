@@ -37,6 +37,8 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string sClient { get; set; }
         [DataMember]
+        public string usuario { get; set; }
+        [DataMember]
         public string nIdUsuario { get; set; }
         [DataMember]
         public int tipoBusqueda { get; set; }

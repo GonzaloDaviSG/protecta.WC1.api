@@ -128,7 +128,28 @@ namespace protecta.WC1.api.Services
             } while (response == "429");
             return response;
         }
-
+        public string archivateCase(string caseSystemId)
+        {
+            //string sRequest = JsonConvert.SerializeObject($"{{\"secondaryFields\":[],\"entityType\":\"INDIVIDUAL\",\"customFields\":[],\"groupId\":\"5jb8bs1tdnwv1fnb5aqmq6kyc\",\"providerTypes\":[\"WATCHLIST\"],\"name\":\"putin\"}}");
+            string sMethod = $"cases/{caseSystemId}/archive";
+            string response = "";
+            do
+            {
+                response = this.putReques(sMethod, "");
+            } while (response == "429");
+            return response;
+        }
+        public string deleteCase(string caseSystemId)
+        {
+            //string sRequest = JsonConvert.SerializeObject($"{{\"secondaryFields\":[],\"entityType\":\"INDIVIDUAL\",\"customFields\":[],\"groupId\":\"5jb8bs1tdnwv1fnb5aqmq6kyc\",\"providerTypes\":[\"WATCHLIST\"],\"name\":\"putin\"}}");
+            string sMethod = $"cases/{caseSystemId}";
+            string response = "";
+            do
+            {
+                response = this.deleteReques(sMethod, "");
+            } while (response == "429");
+            return response;
+        }
         internal Task<ResponseDTO> GetCoincidenceMassive(ResquestAlert item)
         {
             throw new NotImplementedException();
@@ -154,6 +175,64 @@ namespace protecta.WC1.api.Services
             } while (response == "429");
             return response;
         }
+
+        internal Task<Dictionary<string, string>> deleteCases()
+        {
+            Task<Dictionary<string, string>> response = null;
+            try
+            {
+                response = Task.Run(async () =>
+                {
+                    Dictionary<string, string> resp = new Dictionary<string, string>();
+
+                    List<CasesEntity> items = _repository.getCases();
+                    string resDelete = "";
+                    string resArchivate = "";
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        resDelete = "";
+                        resArchivate = "";
+                        if (string.IsNullOrWhiteSpace(items[i].caseSystemId))
+                        {
+                            string _resConfirm = confirmCase(items[i].caseId);
+                            if (!string.IsNullOrWhiteSpace(_resConfirm))
+                            {
+                                CasesEntity item = JsonConvert.DeserializeObject<CasesEntity>(_resConfirm);
+                                items[i].caseSystemId = item.caseSystemId;
+                            }
+                        }
+                        resArchivate = archivateCase(items[i].caseSystemId);
+                        if (resArchivate == "204")
+                            resDelete = deleteCase(items[i].caseSystemId);
+                        if (resDelete == "204")
+                            items[i].isFinish = true;
+                        else
+                            items[i].isFinish = false;
+                    }
+                    int countError = items.Count(t => !t.isFinish);
+                    if (countError > 0)
+                    {
+                        resp["Mensaje"] = "Error en " + countError + " casos de " + items.Count;
+                        resp["code"] = "1";
+                        log.Info("los errores estan en los siguientes casos : " + string.Join(",", items.FindAll(t => !t.isFinish).Select(t => t.caseId).ToArray()));
+                    }
+                    else
+                    {
+                        resp["Mensaje"] = "se han Eliminado " + items.Count + " casos.";
+                        resp["code"] = "0";
+                    }
+                    _repository.deleteCases(items.FindAll(t => t.isFinish).Select(t => t.caseId).ToArray());
+                    return resp;
+                });
+
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.Message);
+                throw;
+            }
+            return response;
+        }
         public string postReques(string sMethod, string sRequest)
         {
             var url = Config.AppSetting["WordlCheckOne:protocol"] + Config.AppSetting["WordlCheckOne:gateWayHost"] + Config.AppSetting["WordlCheckOne:gateWayUrl"];
@@ -165,21 +244,21 @@ namespace protecta.WC1.api.Services
             string firma = $"(request-target): post {Config.AppSetting["WordlCheckOne:gateWayUrl"]}{sMethod}\nhost: {Config.AppSetting["WordlCheckOne:gateWayHost"]}\ndate: {date}\ncontent-type: {Config.AppSetting["WordlCheckOne:content"]}\ncontent-length: {NLength}\n{json}";
             string base64 = this.generateAuthHeader(firma);
             string sAuthorisation = $"Signature keyId=\"{Config.AppSetting["WordlCheckOne:appKey"]}\",algorithm=\"hmac-sha256\",headers=\"(request-target) host date content-type content-length\" ,signature=\"{base64}\"";
-
-            var request = (HttpWebRequest)WebRequest.Create(url + sMethod);
-            request.Method = "POST";
-            request.ContentType = "application/json";
-            request.ContentLength = NLength;
-            //request.ContentLength = firma.Length;
-            request.Date = dDate;
-            //request.Accept = "*/*";
-            request.Headers.Add("Cache-Control", "no-cache");
-            request.Headers.Add("Authorization", sAuthorisation);
-            Stream newStream = request.GetRequestStream();
-            newStream.Write(byte1, 0, NLength);
             try
             {
-                //Thread.Sleep(1000);
+
+                var request = (HttpWebRequest)WebRequest.Create(url + sMethod);
+                request.Method = "POST";
+                request.ContentType = "application/json";
+                request.ContentLength = NLength;
+                //request.ContentLength = firma.Length;
+                request.Date = dDate;
+                //request.Accept = "*/*";
+                request.Headers.Add("Cache-Control", "no-cache");
+                request.Headers.Add("Authorization", sAuthorisation);
+                Stream newStream = request.GetRequestStream();
+                newStream.Write(byte1, 0, NLength);
+
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
                     string jsontxt = "";
@@ -192,6 +271,7 @@ namespace protecta.WC1.api.Services
                     jsontxt = _Answer.ReadToEnd();
                     return jsontxt;
                 }
+
             }
             catch (WebException ex)
             {
@@ -239,6 +319,37 @@ namespace protecta.WC1.api.Services
             }
             return "";
         }
+        public string deleteReques(string sMethod, string sRequest = "")
+        {
+            var url = Config.AppSetting["WordlCheckOne:protocol"] + Config.AppSetting["WordlCheckOne:gateWayHost"] + Config.AppSetting["WordlCheckOne:gateWayUrl"];
+            //string json = sRequest;
+            DateTime dDate = DateTime.UtcNow;
+            string date = dDate.ToString("R");
+            //byte[] byte1 = Encoding.UTF8.GetBytes(json);
+            //int NLength = byte1.Length;
+            string firma = $"(request-target): delete {Config.AppSetting["WordlCheckOne:gateWayUrl"]}{sMethod}\nhost: {Config.AppSetting["WordlCheckOne:gateWayHost"]}\ndate: {date}";
+            string base64 = this.generateAuthHeader(firma);
+            string sAuthorisation = $"Signature keyId=\"{Config.AppSetting["WordlCheckOne:appKey"]}\",algorithm=\"hmac-sha256\",headers=\"(request-target) host date\" ,signature=\"{base64}\"";
+
+            var request = (HttpWebRequest)WebRequest.Create(url + sMethod + sRequest);
+            request.Method = "DELETE";
+            request.Date = dDate;
+            request.Headers.Add("Cache-Control", "no-cache");
+            request.Headers.Add("Authorization", sAuthorisation);
+            try
+            {
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    return (int)response.StatusCode + "";
+                };
+
+            }
+            catch (WebException ex)
+            {
+                // Handle error
+            }
+            return "";
+        }
         public string putReques(string sMethod, string sRequest)
         {
             var url = Config.AppSetting["WordlCheckOne:protocol"] + Config.AppSetting["WordlCheckOne:gateWayHost"] + Config.AppSetting["WordlCheckOne:gateWayUrl"];
@@ -247,13 +358,15 @@ namespace protecta.WC1.api.Services
             string date = dDate.ToString("R");
             byte[] byte1 = Encoding.UTF8.GetBytes(json);
             int NLength = byte1.Length;
-            string firma = $"(request-target): put {Config.AppSetting["WordlCheckOne:gateWayUrl"]}{sMethod}\nhost: {Config.AppSetting["WordlCheckOne:gateWayHost"]}\ndate: {date}\ncontent-type: {Config.AppSetting["WordlCheckOne:content"]}\ncontent-length: {NLength}\n{json}";
+            //string firma = $"(request-target): put {Config.AppSetting["WordlCheckOne:gateWayUrl"]}{sMethod}\nhost: {Config.AppSetting["WordlCheckOne:gateWayHost"]}\ndate: {date}\ncontent-type: {Config.AppSetting["WordlCheckOne:content"]}\ncontent-length: {NLength}\n{json}";
+            string firma = $"(request-target): put {Config.AppSetting["WordlCheckOne:gateWayUrl"]}{sMethod}\nhost: {Config.AppSetting["WordlCheckOne:gateWayHost"]}\ndate: {date}";
             string base64 = this.generateAuthHeader(firma);
-            string sAuthorisation = $"Signature keyId=\"{Config.AppSetting["WordlCheckOne:appKey"]}\",algorithm=\"hmac-sha256\",headers=\"(request-target) host date content-type content-length\" ,signature=\"{base64}\"";
+            //string sAuthorisation = $"Signature keyId=\"{Config.AppSetting["WordlCheckOne:appKey"]}\",algorithm=\"hmac-sha256\",headers=\"(request-target) host date content-type content-length\" ,signature=\"{base64}\"";
+            string sAuthorisation = $"Signature keyId=\"{Config.AppSetting["WordlCheckOne:appKey"]}\",algorithm=\"hmac-sha256\",headers=\"(request-target) host date \" ,signature=\"{base64}\"";
 
             var request = (HttpWebRequest)WebRequest.Create(url + sMethod);
             request.Method = "PUT";
-            request.ContentType = "application/json";
+            //request.ContentType = "application/json";
             request.ContentLength = NLength;
             //request.ContentLength = firma.Length;
             request.Date = dDate;
@@ -264,18 +377,11 @@ namespace protecta.WC1.api.Services
             newStream.Write(byte1, 0, NLength);
             try
             {
-                Thread.Sleep(2000);
+                //Thread.Sleep(2000);
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                    string jsontxt = "";
-                    if ((int)response.StatusCode == 429)
-                    {
-                        return (int)response.StatusCode + "";
-                    }
-                    Stream Answer = response.GetResponseStream();
-                    StreamReader _Answer = new StreamReader(Answer);
-                    jsontxt = _Answer.ReadToEnd();
-                    return jsontxt;
+
+                    return (int)response.StatusCode + "";
                 };
 
             }
@@ -498,10 +604,13 @@ namespace protecta.WC1.api.Services
         {
             ResponseDTO respuesta = new ResponseDTO();
             List<ResquestAlert> itemsBusqueda = new List<ResquestAlert>();
-            List<Dictionary<string, dynamic>> coincidencias = new List<Dictionary<string, dynamic>>();
+            List<CoincidenciaDemanda> coincidencias = new List<CoincidenciaDemanda>();
             ResponseDTO profiles = new ResponseDTO();
             try
             {
+                List<Dictionary<string, dynamic>> listas = _repository.getListasPorFuente();
+                listas = listas.FindAll(t => int.Parse(t["NIDPROVEEDOR"].ToString()) == 4);
+                List<CoincidenciaDemanda> response = new List<CoincidenciaDemanda>();
                 if (item.tipoBusqueda == 2)
                 {
 
@@ -510,20 +619,114 @@ namespace protecta.WC1.api.Services
                     {
                         for (int i = 0; i < itemsBusqueda.Count; i++)
                         {
-                            List<Dictionary<string, dynamic>> _coincidencias = null;
+                            List<CoincidenciaDemanda> _coincidencias = null;
                             _coincidencias = getCoincidenciasDemanda(itemsBusqueda[i], true);
                             coincidencias.AddRange(_coincidencias);
+                        }
+                    }
+
+                    for (int i = 0; i < itemsBusqueda.Count; i++)
+                    {
+                        for (int j = 0; j < listas.Count; j++)
+                        {
+                            CoincidenciaDemanda _item = null;
+                            List<CoincidenciaDemanda> _coincidencias = coincidencias.FindAll(t => t.SNOMBRE_BUSQUEDA == itemsBusqueda[i].name);
+                            for (int x = 0; x < _coincidencias.Count; x++)
+                            {
+                                _item = new CoincidenciaDemanda();
+                                if (_coincidencias[x].NIDTIPOLISTA == int.Parse(listas[j]["NIDTIPOLISTA"].ToString()) && _coincidencias[x].SNOMBRE_BUSQUEDA == itemsBusqueda[i].name)
+                                {
+
+                                    _coincidencias[x].SCOINCIDENCIA = "CON COINCIDENCIA";
+                                    _coincidencias[x].SDESTIPOLISTA = listas[j]["SDESTIPOLISTA"].ToString();
+                                    _coincidencias[x].SDESPROVEEDOR = listas[j]["SDESPROVEEDOR"].ToString();
+                                    _coincidencias[x].NIDPROVEEDOR = int.Parse(listas[j]["NIDPROVEEDOR"].ToString());
+                                    _coincidencias[x].SCOINCIDENCIA = "CON COINCIDENCIA";
+                                    _coincidencias[x].STIPOCOINCIDENCIA = "NOMBRE";
+                                    _item = _coincidencias[x];
+                                    _item.SUSUARIO_BUSQUEDA = item.usuario;
+                                    response.Add(_item);
+                                }
+                                else
+                                {
+                                    _item.SNOMBRE_BUSQUEDA = itemsBusqueda[i].name;
+                                    _item.NIDTIPOLISTA = int.Parse(listas[j]["NIDTIPOLISTA"].ToString());
+                                    _item.SDESTIPOLISTA = listas[j]["SDESTIPOLISTA"].ToString();
+                                    _item.NIDPROVEEDOR = int.Parse(listas[j]["NIDPROVEEDOR"].ToString());
+                                    _item.SDESPROVEEDOR = listas[j]["SDESPROVEEDOR"].ToString();
+                                    _item.SUSUARIO_BUSQUEDA = item.usuario;
+                                    _item.SCOINCIDENCIA = "SIN COINCIDENCIA";
+                                    response.Add(_item);
+                                }
+                            }
+                            if (_coincidencias.Count == 0)
+                            {
+                                _item = new CoincidenciaDemanda();
+                                _item.SNOMBRE_BUSQUEDA = itemsBusqueda[i].name;
+                                _item.NIDTIPOLISTA = int.Parse(listas[j]["NIDTIPOLISTA"].ToString());
+                                _item.SDESTIPOLISTA = listas[j]["SDESTIPOLISTA"].ToString();
+                                _item.NIDPROVEEDOR = int.Parse(listas[j]["NIDPROVEEDOR"].ToString());
+                                _item.SDESPROVEEDOR = listas[j]["SDESPROVEEDOR"].ToString();
+                                _item.SUSUARIO_BUSQUEDA = item.usuario;
+                                _item.SCOINCIDENCIA = "SIN COINCIDENCIA";
+                                response.Add(_item);
+
+                            }
                         }
                     }
                 }
                 else
                 {
                     coincidencias = getCoincidenciasDemanda(item, false);
+                    for (int j = 0; j < listas.Count; j++)
+                    {
+                        CoincidenciaDemanda _item = null;
+                        for (int x = 0; x < coincidencias.Count; x++)
+                        {
+                            _item = new CoincidenciaDemanda();
+                            if (coincidencias[x].NIDTIPOLISTA == int.Parse(listas[j]["NIDTIPOLISTA"]) && coincidencias[x].SNOMBRE_BUSQUEDA == item.name)
+                            {
+                                coincidencias[x].SCOINCIDENCIA = "CON COINCIDENCIA";
+                                coincidencias[x].SDESTIPOLISTA = listas[j]["SDESTIPOLISTA"].ToString();
+                                coincidencias[x].SDESPROVEEDOR = listas[j]["SDESPROVEEDOR"].ToString();
+                                coincidencias[x].NIDPROVEEDOR = int.Parse(listas[j]["NIDPROVEEDOR"].ToString());
+                                _item.SUSUARIO_BUSQUEDA = item.usuario;
+                                coincidencias[x].SCOINCIDENCIA = "CON COINCIDENCIA";
+                                coincidencias[x].STIPOCOINCIDENCIA = "NOMBRE";
+                                _item = coincidencias[x];
+                                response.Add(_item);
+                            }
+                            else
+                            {
+                                _item.SNOMBRE_BUSQUEDA = item.name;
+                                _item.NIDTIPOLISTA = int.Parse(listas[j]["NIDTIPOLISTA"].ToString());
+                                _item.SDESTIPOLISTA = listas[j]["SDESTIPOLISTA"].ToString();
+                                _item.NIDPROVEEDOR = int.Parse(listas[j]["NIDPROVEEDOR"].ToString());
+                                _item.SDESPROVEEDOR = listas[j]["SDESPROVEEDOR"].ToString();
+                                _item.SUSUARIO_BUSQUEDA = item.usuario;
+                                _item.SCOINCIDENCIA = "SIN COINCIDENCIA";
+                                response.Add(_item);
+                            }
+                        }
+                        if (coincidencias.Count == 0)
+                        {
+                            _item = new CoincidenciaDemanda();
+                            _item.SNOMBRE_BUSQUEDA = item.name;
+                            _item.NIDTIPOLISTA = int.Parse(listas[j]["NIDTIPOLISTA"].ToString());
+                            _item.SDESTIPOLISTA = listas[j]["SDESTIPOLISTA"].ToString();
+                            _item.NIDPROVEEDOR = int.Parse(listas[j]["NIDPROVEEDOR"].ToString());
+                            _item.SDESPROVEEDOR = listas[j]["SDESPROVEEDOR"].ToString();
+                            _item.SUSUARIO_BUSQUEDA = item.usuario;
+                            _item.SCOINCIDENCIA = "SIN COINCIDENCIA";
+                            response.Add(_item);
+
+                        }
+                    }
                 }
                 respuesta.sMessage = "Termino la busqueda satisfactoriamente.";
                 respuesta.nCode = 0;
-                respuesta.Items = new List<Dictionary<string, dynamic>>();
-                respuesta.Items.AddRange(coincidencias);
+                respuesta.Items = new List<CoincidenciaDemanda>();
+                respuesta.Items.AddRange(response);
                 return respuesta;
             }
             catch (Exception ex)
@@ -533,16 +736,15 @@ namespace protecta.WC1.api.Services
                 return respuesta;
             }
         }
-        public List<Dictionary<string, dynamic>> getCoincidenciasDemanda(ResquestAlert item, bool isMasive)
+        public List<CoincidenciaDemanda> getCoincidenciasDemanda(ResquestAlert item, bool isMasive)
         {
 
             string caseId = "";
             string caseSystemId = "";
-            List<Dictionary<string, dynamic>> _items = new List<Dictionary<string, dynamic>>();
-            Dictionary<string, dynamic> _item = null;
+            List<CoincidenciaDemanda> _items = new List<CoincidenciaDemanda>();
+            CoincidenciaDemanda _item = null;
             List<ResponseWc1> items = new List<ResponseWc1>();
             List<Dictionary<string, string>> filters = new List<Dictionary<string, string>>();
-
             filters = this.prepareFilter(item);
             for (int f = 0; f < filters.Count; f++)
             {
@@ -557,19 +759,19 @@ namespace protecta.WC1.api.Services
                     ResponseProfileDTO profile = new ResponseProfileDTO();
                     for (int i = 0; i < items.Count; i++)
                     {
-                        _item = new Dictionary<string, dynamic>();
-                        _item["SNOMBRE_COMPLETO"] = items[i].primaryName;
-                        _item["SNOMBRE_BUSQUEDA"] = item.name;
-                        _item["SNOMBRE_TERMINO"] = items[i].matchedTerm.ToString();
+                        _item = new CoincidenciaDemanda();
+                        _item.SNOMBRE_COMPLETO = items[i].primaryName;
+                        _item.SNOMBRE_BUSQUEDA = item.name;
+                        _item.SNOMBRE_TERMINO = items[i].matchedTerm.ToString();
                         if (items[i].categories.Count > 0)
                         {
-                            _item["SLISTA"] = items[i].categories.Distinct().ToString() == "PEP" ? "LISTAS PEP" : "LISTAS INTERNACIONALES";
+                            _item.NIDTIPOLISTA = items[i].categories.Contains("PEP") ? 2 : 1;
                         }
-                        _item["DFECHA_BUSQUEDA"] = DateTime.Now.ToString();
-                        _item["SCARGO"] = "-";
-                        _item["STIPO_PERSONA"] = filters[f]["tipoPersona"];
-                        _item["SNUM_DOCUMENTO"] = "-";
-                        _item["STIPO_DOCUMENTO"] = "-";
+                        _item.DFECHA_BUSQUEDA = DateTime.Now.ToString();
+                        _item.SCARGO = "-";
+                        _item.STIPO_PERSONA = filters[f]["tipoPersona"];
+                        _item.SNUM_DOCUMENTO = "-";
+                        _item.STIPO_DOCUMENTO = "-";
                         List<Dictionary<string, dynamic>> documents = new List<Dictionary<string, dynamic>>();
                         if (items[i].identityDocuments.Count > 0)
                         {
@@ -577,17 +779,17 @@ namespace protecta.WC1.api.Services
                             {
                                 if (items[i].identityDocuments[j].locationType.type.Contains("RUC"))
                                 {
-                                    _item["SNUM_DOCUMENTO"] = items[i].identityDocuments[j].number.Length == 11 ? items[i].identityDocuments[j].number : "-";
-                                    _item["STIPO_DOCUMENTO"] = "RUC";
+                                    _item.SNUM_DOCUMENTO = items[i].identityDocuments[j].number.Length == 11 ? items[i].identityDocuments[j].number : "-";
+                                    _item.STIPO_DOCUMENTO = "RUC";
                                 }
                                 else if (items[i].identityDocuments[j].locationType.type.Contains("DNI"))
                                 {
-                                    _item["SNUM_DOCUMENTO"] = validarDni(items[i].identityDocuments[j].number);
-                                    _item["STIPO_DOCUMENTO"] = "DNI";
+                                    _item.SNUM_DOCUMENTO = validarDni(items[i].identityDocuments[j].number);
+                                    _item.STIPO_DOCUMENTO = "DNI";
                                 }
                             }
                         }
-                        if (_item["SLISTA"] == "LISTAS PEP")
+                        if (_item.NIDTIPOLISTA == 2)
                         {
                             string resultado = this.getProfiles(items[i].referenceId);
                             profile = JsonConvert.DeserializeObject<ResponseProfileDTO>(resultado);
@@ -595,11 +797,20 @@ namespace protecta.WC1.api.Services
                                 for (int j = 0; j < profile.details.Count; j++)
                                 {
                                     if (profile.details[j].detailType == "BIOGRAPHY")
-                                        _item["SCARGO"] = profile.details[j].text;
+                                        _item.SCARGO = profile.details[j].text;
                                 }
                         }
-                        _item["SPORCEN_COINCIDENCIA"] = items[i].matchStrength == "STRONG" ? 75 : items[i].matchStrength == "EXACT" ? 100 : 0;
-                        _item["SPORCEN_SCORE"] = double.Parse(items[i].matchScore);
+                        if (!string.IsNullOrWhiteSpace(items[i].matchScore))
+                        {
+                            if (double.Parse(items[i].matchScore) > 0)
+                                _item.SPORCEN_COINCIDENCIA = ((int)double.Parse(items[i].matchScore)).ToString();
+                        }
+                        else
+                        {
+                            _item.SPORCEN_COINCIDENCIA = "0";
+                        }
+                        //_item["SPORCEN_COINCIDENCIA"] = items[i].matchStrength == "STRONG" ? 75 : items[i].matchStrength == "EXACT" ? 100 : 0;
+                        //_item["SPORCEN_SCORE"] = double.Parse(items[i].matchScore);
                         _items.Add(_item);
                     }
                 }

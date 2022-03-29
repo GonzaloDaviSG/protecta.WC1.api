@@ -132,6 +132,62 @@ namespace protecta.WC1.api.Repository
             }
         }
 
+        internal List<CasesEntity> getCases()
+        {
+
+            List<CasesEntity> List = new List<CasesEntity>();
+            try
+            {
+                OracleParameter RC1 = new OracleParameter("RC1", OracleDbType.RefCursor, System.Data.ParameterDirection.Output);
+                OracleParameter[] parameters = new OracleParameter[] { RC1 };
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_IMPORTAR_DATA_WC1.SP_GET_LIST_CASES(:RC1);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+                OracleDataReader odr = ((OracleRefCursor)RC1.Value).GetDataReader();
+                while (odr.Read())
+                {
+                    CasesEntity item = new CasesEntity();
+                    item.caseId = odr["SCASEID"].ToString();
+                    item.caseSystemId = odr["SCASESYSTEMID"].ToString();
+                    List.Add(item);
+                }
+                odr.Close();
+                this.context.Database.CloseConnection();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return List;
+        }
+
+        internal void deleteCases(string[] ValoresCases)
+        {
+            try
+            {
+                OracleConnection connection = new OracleConnection(Utils.Config.AppSetting["ConnectionString:LAFT"]);
+                connection.Open();
+                OracleParameter SCASEID = new OracleParameter("SCASEID", OracleDbType.Varchar2, ValoresCases, ParameterDirection.Input);
+                OracleParameter[] parameters = new OracleParameter[] { SCASEID };
+                OracleCommand cmd = connection.CreateCommand();
+                cmd.CommandText = "DELETE FROM TBL_CASES_WORLDCHECK " +
+                                  "WHERE SCASEID IN (:1)";
+                cmd.ArrayBindCount = ValoresCases.Length;
+                cmd.Parameters.AddRange(parameters);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+
+        }
+
         internal void SaveEvents(Events events, int nId)
         {
             ResponseDTO respo = new ResponseDTO();
@@ -428,6 +484,41 @@ namespace protecta.WC1.api.Repository
             }
         }
 
+        internal List<Dictionary<string, dynamic>> getListasPorFuente()
+        {
+
+            List<Dictionary<string, dynamic>> List = new List<Dictionary<string, dynamic>>();
+            try
+            {
+                OracleParameter RC1 = new OracleParameter("RC1", OracleDbType.RefCursor, System.Data.ParameterDirection.Output);
+                OracleParameter[] parameters = new OracleParameter[] { RC1 };
+                var query = @"
+                    BEGIN
+                        LAFT.PKG_LAFT_GESTION_ALERTAS.SP_GET_LIST_FOR_PROVEEDOR(:RC1);
+                    END;
+                    ";
+                this.context.Database.OpenConnection();
+                this.context.Database.ExecuteSqlCommand(query, parameters);
+                OracleDataReader odr = ((OracleRefCursor)RC1.Value).GetDataReader();
+                while (odr.Read())
+                {
+                    Dictionary<string, dynamic> item = new Dictionary<string, dynamic>();
+                    item["NIDTIPOLISTA"] = odr["NIDTIPOLISTA"].ToString();
+                    item["SDESTIPOLISTA"] = odr["SDESTIPOLISTA"].ToString();
+                    item["NIDPROVEEDOR"] = odr["NIDPROVEEDOR"].ToString();
+                    item["SDESPROVEEDOR"] = odr["SDESPROVEEDOR"].ToString();
+                    List.Add(item);
+                }
+                odr.Close();
+                this.context.Database.CloseConnection();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return List;
+        }
+
         internal List<ResquestAlert> getDemandas(string codBusqueda)
         {
             List<ResquestAlert> items = new List<ResquestAlert>();
@@ -502,7 +593,7 @@ namespace protecta.WC1.api.Repository
             return respo;
         }
 
-        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId, string biography,string informacion = "")
+        internal ResponseDTO SaveResultCoincidencias(ResponseWc1 responseWc1, ResquestAlert item, int id, string caseSystemId, string caseId, string biography, string informacion = "")
         {
 
             ResponseDTO response = new ResponseDTO();
@@ -592,7 +683,7 @@ namespace protecta.WC1.api.Repository
                 OracleParameter P_NPERIODO_PROCESO = new OracleParameter("P_NPERIODO_PROCESO", OracleDbType.NVarchar2, numPeriodo, ParameterDirection.Input);
                 OracleParameter P_NCODE = new OracleParameter("P_NCODE", OracleDbType.Int32, System.Data.ParameterDirection.Output);
                 OracleParameter P_SMESSAGE = new OracleParameter("P_SMESSAGE", OracleDbType.Varchar2, System.Data.ParameterDirection.Output);
-                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NCODE, P_SMESSAGE};
+                OracleParameter[] parameters = new OracleParameter[] { P_NPERIODO_PROCESO, P_NCODE, P_SMESSAGE };
                 P_NCODE.Size = 4000;
                 P_SMESSAGE.Size = 4000;
                 var query = @"
@@ -724,7 +815,7 @@ namespace protecta.WC1.api.Repository
                 throw ex;
             }
         }
-        
+
 
         public List<Dictionary<string, dynamic>> GetGrupoSenal()
         {
