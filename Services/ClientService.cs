@@ -7,6 +7,8 @@ namespace protecta.WC1.api.Services
 {
     public class ClientService
     {
-        
+        public ClientService(){
+
+        }
     }
 }
