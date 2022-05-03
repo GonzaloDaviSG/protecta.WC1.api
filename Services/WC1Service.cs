@@ -798,6 +798,8 @@ namespace protecta.WC1.api.Services
                                 {
                                     if (profile.details[j].detailType == "BIOGRAPHY")
                                         _item.SCARGO = profile.details[j].text;
+                                    if (profile.details[j].detailType == "REPORTS")
+                                        _item.SINFORMACION = profile.details[j].text;
                                 }
                         }
                         if (!string.IsNullOrWhiteSpace(items[i].matchScore))

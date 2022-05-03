@@ -30,6 +30,8 @@ namespace protecta.WC1.api.DTO
         [DataMember]
         public string SCARGO { get; set; }
         [DataMember]
+        public string SINFORMACION { get; set; }
+        [DataMember]
         public int NIDTIPOLISTA { get; set; }
         [DataMember]
         public string SDESTIPOLISTA { get; set; }
