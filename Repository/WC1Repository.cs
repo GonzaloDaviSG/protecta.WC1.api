@@ -13,6 +13,8 @@ namespace protecta.WC1.api.Repository
 {
     public class WC1Repository : IWC1Repository
     {
+
+        log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private DB.ApplicationDbContext context;
         public WC1Repository()
         {
@@ -183,7 +185,7 @@ namespace protecta.WC1.api.Repository
             catch (Exception ex)
             {
 
-                throw;
+                throw ex;
             }
 
         }
@@ -588,6 +590,7 @@ namespace protecta.WC1.api.Repository
             }
             catch (Exception ex)
             {
+                log.Error(ex.Message);
                 Console.Out.WriteLine(ex.Message);
             }
             return respo;

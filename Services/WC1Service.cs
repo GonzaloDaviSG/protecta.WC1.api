@@ -176,7 +176,7 @@ namespace protecta.WC1.api.Services
             return response;
         }
 
-        internal Task<Dictionary<string, string>> deleteCases()
+        internal Task<Dictionary<string, string>> deleteCases(CasesEntity _item = null)
         {
             Task<Dictionary<string, string>> response = null;
             try
@@ -185,7 +185,14 @@ namespace protecta.WC1.api.Services
                 {
                     Dictionary<string, string> resp = new Dictionary<string, string>();
 
-                    List<CasesEntity> items = _repository.getCases();
+                    List<CasesEntity> items = new List<CasesEntity>();
+                    if (_item != null)
+                    {
+                        items.Add(_item);
+                    }
+                    else {
+                        items = _repository.getCases();
+                    }
                     string resDelete = "";
                     string resArchivate = "";
                     for (int i = 0; i < items.Count; i++)
@@ -221,10 +228,11 @@ namespace protecta.WC1.api.Services
                         resp["Mensaje"] = "se han Eliminado " + items.Count + " casos.";
                         resp["code"] = "0";
                     }
-                    _repository.deleteCases(items.FindAll(t => t.isFinish).Select(t => t.caseId).ToArray());
+                    if (_item == null)
+                        _repository.deleteCases(items.FindAll(t => t.isFinish).Select(t => t.caseId).ToArray());
                     return resp;
                 });
-
+                response.Wait();
             }
             catch (Exception ex)
             {
@@ -275,6 +283,7 @@ namespace protecta.WC1.api.Services
             }
             catch (WebException ex)
             {
+                log.Error(ex.Message);
                 // Handle error
             }
             return "";
@@ -298,7 +307,7 @@ namespace protecta.WC1.api.Services
             request.Headers.Add("Authorization", sAuthorisation);
             try
             {
-                Thread.Sleep(2000);
+                Thread.Sleep(500);
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
                     string jsontxt = "";
@@ -315,6 +324,7 @@ namespace protecta.WC1.api.Services
             }
             catch (WebException ex)
             {
+                log.Error(ex.Message);
                 // Handle error
             }
             return "";
@@ -346,6 +356,7 @@ namespace protecta.WC1.api.Services
             }
             catch (WebException ex)
             {
+                log.Error(ex.Message);
                 // Handle error
             }
             return "";
@@ -387,6 +398,7 @@ namespace protecta.WC1.api.Services
             }
             catch (WebException ex)
             {
+                log.Error(ex.Message);
                 // Handle error
             }
             return "";
@@ -463,6 +475,7 @@ namespace protecta.WC1.api.Services
             }
             catch (Exception ex)
             {
+                log.Error(ex.Message);
                 throw;
             }
             return response;
@@ -487,7 +500,7 @@ namespace protecta.WC1.api.Services
             }
             catch (Exception ex)
             {
-
+                log.Error(ex.Message);
                 throw ex;
             }
 
@@ -559,7 +572,7 @@ namespace protecta.WC1.api.Services
                 }
                 catch (Exception ex)
                 {
-                    log.Info("Error  :" + ex.Message);
+                    log.Error("Error  :" + ex.Message);
                     throw ex;
                 }
             });
@@ -624,7 +637,7 @@ namespace protecta.WC1.api.Services
                             coincidencias.AddRange(_coincidencias);
                         }
                     }
-
+                    log.Info("luego de obtener todas las coincidencias");
                     for (int i = 0; i < itemsBusqueda.Count; i++)
                     {
                         for (int j = 0; j < listas.Count; j++)
@@ -731,6 +744,7 @@ namespace protecta.WC1.api.Services
             }
             catch (Exception ex)
             {
+                log.Error(ex.Message);
                 respuesta.sMessage = ex.Message;
                 respuesta.nCode = 1;
                 return respuesta;
@@ -742,10 +756,13 @@ namespace protecta.WC1.api.Services
             string caseId = "";
             string caseSystemId = "";
             List<CoincidenciaDemanda> _items = new List<CoincidenciaDemanda>();
+            CasesEntity elementCase = new CasesEntity();
+
             CoincidenciaDemanda _item = null;
             List<ResponseWc1> items = new List<ResponseWc1>();
             List<Dictionary<string, string>> filters = new List<Dictionary<string, string>>();
             filters = this.prepareFilter(item);
+            log.Info("antes de crear los filtres " + item.name);
             for (int f = 0; f < filters.Count; f++)
             {
                 item.tipo = filters[f]["tipoEntidad"];
@@ -753,6 +770,9 @@ namespace protecta.WC1.api.Services
                 objDefault = this.getRequest(item);
                 string result = createCase(objDefault);
                 items = this.getResponse(result, item, true, out caseId, out caseSystemId);
+                elementCase.caseId = caseId;
+                elementCase.caseSystemId = caseSystemId;
+                log.Info("luego de obtener el getresponse  " + item.name);
                 if (items.Count > 0)
                 {
 
@@ -817,6 +837,7 @@ namespace protecta.WC1.api.Services
                     }
                 }
             }
+            this.deleteCases(elementCase);
             return _items;
         }
 
@@ -873,6 +894,7 @@ namespace protecta.WC1.api.Services
             }
             catch (Exception ex)
             {
+                log.Error(ex.Message);
                 _response = new ResponseDTO();
                 _response.nCode = 1;
                 _response.sMessage = ex.Message;
@@ -904,6 +926,7 @@ namespace protecta.WC1.api.Services
             }
             catch (Exception ex)
             {
+                log.Error(ex.Message);
                 _response = new ResponseDTO();
                 _response.nCode = 1;
                 _response.sMessage = ex.Message;
@@ -994,6 +1017,7 @@ namespace protecta.WC1.api.Services
                 }
                 catch (Exception ex)
                 {
+                    log.Error(ex.Message);
                     throw ex;
                 }
             });

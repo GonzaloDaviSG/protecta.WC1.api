@@ -16,7 +16,6 @@ namespace protecta.WC1.api.DTO
         public string referenceId { get; set; }
         [DataMember]
         public string matchScore { get; set; }
-
         [DataMember]
         public string matchStrength { get; set; }
         [DataMember]
