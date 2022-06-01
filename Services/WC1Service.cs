@@ -809,8 +809,8 @@ namespace protecta.WC1.api.Services
                                 }
                             }
                         }
-                        if (_item.NIDTIPOLISTA == 2)
-                        {
+                        //if (_item.NIDTIPOLISTA == 2)
+                        //{
                             string resultado = this.getProfiles(items[i].referenceId);
                             profile = JsonConvert.DeserializeObject<ResponseProfileDTO>(resultado);
                             if (profile.details.Count > 0)
@@ -821,7 +821,7 @@ namespace protecta.WC1.api.Services
                                     if (profile.details[j].detailType == "REPORTS")
                                         _item.SINFORMACION = profile.details[j].text;
                                 }
-                        }
+                        //}
                         if (!string.IsNullOrWhiteSpace(items[i].matchScore))
                         {
                             if (double.Parse(items[i].matchScore) > 0)
