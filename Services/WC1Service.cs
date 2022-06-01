@@ -54,57 +54,6 @@ namespace protecta.WC1.api.Services
             records.Add(2);
             records.Add(3);
         }
-
-        public List<ResponseWc1> Create(RequestWc1 item)
-        {
-            item.groupId = Config.AppSetting["WordlCheckOne:groupId"];
-            string values = this.createCase(item);
-
-            dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(values);
-            string values2 = this.confirmCase(obj.caseId.ToString());
-
-            dynamic obj2 = Newtonsoft.Json.JsonConvert.DeserializeObject(values2);
-            string values3 = this.getResults(obj.caseSystemId.ToString());
-
-            List<ResponseWc1> items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>(values3);
-            //ResponseDTO _item = this.SaveResult(item, obj.caseSystemId.ToString());
-            return items;
-        }
-
-        internal Dictionary<string, string> listCountry()
-        {
-            Dictionary<string, string> list = new Dictionary<string, string>();
-            string sMethod = $"/reference/countries";
-            string response = this.getReques(sMethod);
-            list = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
-            return list;
-        }
-
-
-
-        internal object cargaMassive()
-        {
-            Dictionary<string, string> list = new Dictionary<string, string>();
-            string sMethod = $"/reference/nationalities";
-            string response = this.getReques(sMethod);
-            list = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(response);
-            return list;
-        }
-
-        internal Task<ListResponseDTO> setClienteTratamiento(ResquestAlert item)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal object Resolution(RequestWC1ResolutionDTO item)
-        {
-            string sRequest = JsonConvert.SerializeObject(item.item);
-            string sMethod = $"cases/{item.caseSystemId}/results/resolution";
-            string response = this.putReques(sMethod, sRequest);
-            return response;
-        }
-
-
         private string createCase(RequestWc1 item)
         {
             string sRequest = JsonConvert.SerializeObject(item);
@@ -149,10 +98,6 @@ namespace protecta.WC1.api.Services
                 response = this.deleteReques(sMethod, "");
             } while (response == "429");
             return response;
-        }
-        internal Task<ResponseDTO> GetCoincidenceMassive(ResquestAlert item)
-        {
-            throw new NotImplementedException();
         }
 
         private string confirmCase(string caseId)
@@ -478,32 +423,6 @@ namespace protecta.WC1.api.Services
                 log.Error(ex.Message);
                 throw;
             }
-            return response;
-        }
-
-        internal ResponseDTO procesoCoincidencia()
-        {
-
-            ResponseDTO response = new ResponseDTO();
-            List<ResponseWc1> items;
-            List<string> List = _repository.ListIndividuos();
-            try
-            {
-                //for (int i = 0; i < List.Count; i++)
-                //{
-                objDefault.name = "Alan Gabriel Ludwig García Pérez";//List[i];
-                string result = createCase(objDefault);
-                dynamic obj = Newtonsoft.Json.JsonConvert.DeserializeObject(result);
-                items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ResponseWc1>>((obj.results).ToString());
-
-                //}
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex.Message);
-                throw ex;
-            }
-
             return response;
         }
         internal async Task<ListResponseDTO> getCoincidenceNotPep(ResquestAlert item)
